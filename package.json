@@ -1,0 +1,73 @@
+{
+  "name": "@dark-mechanicum/aws-codebuild",
+  "version": "1.0.0",
+  "description": "GitHub Action to execute AWS CodeBuild jobs",
+  "author": "Andrei Kazakou<a.v.kazakou@gmail.com>",
+  "main": "dist/index.js",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --ext ts .",
+    "test": "jest --detectOpenHandles --passWithNoTests"
+  },
+  "dependencies": {
+    "@actions/core": "^1.9.0",
+    "@actions/github": "^5.0.3",
+    "aws-sdk": "^2.1169.0",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.4",
+    "@types/node": "^18.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "eslint": "^8.19.0",
+    "jest": "^28.1.2",
+    "source-map-support": "^0.5.21",
+    "ts-jest": "^28.0.5",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  },
+  "jest": {
+    "verbose": true,
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.lint.json",
+        "diagnostics": true
+      }
+    },
+    "testMatch": [
+      "<rootDir>/__tests__/**/*.+(ts|tsx|js)"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/fixtures/",
+      "<rootDir>/__tests__/init/*.+(ts|tsx|js)"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.+(ts|tsx|js)",
+      "<rootDir>/src/index.+(ts|tsx|js)"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/src/plugin/*.+(ts|tsx|js)",
+      "<rootDir>/src/types/*.+(ts|tsx|js)"
+    ]
+  }
+}
