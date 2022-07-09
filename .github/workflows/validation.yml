@@ -31,6 +31,6 @@ jobs:
         run: npm run build
 
       - name: Executing AWS CodeBuild task
-        uses: ./
+        uses: dist/
         with:
           projectName: 'testing-codebuild-logs'
