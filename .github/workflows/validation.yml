@@ -6,32 +6,11 @@ jobs:
     name: Verifying
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '16'
-
       - name: Checkout source code
-        uses: actions/checkout@v2
-
-      - name: Restore cache of Node.js project dependencies
-        id: cache-node-modules
-        uses: actions/cache@v2
-        env:
-          cache-name: node_modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install Node.js project dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
-
-      - name: Build Javascript files from TypeScript notation
-        run: npm run build
+        uses: actions/checkout@v3
 
       - name: Executing AWS CodeBuild task
-        uses: ./dist/
+        uses: ./
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
