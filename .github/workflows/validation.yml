@@ -7,6 +7,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
-        uses: dark-mechanicum/aws-codebuild@main
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16'
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Restore cache of Node.js project dependencies
+        id: cache-node-modules
+        uses: actions/cache@v2
+        env:
+          cache-name: node_modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Node.js project dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build Javascript files from TypeScript notation
+        run: npm run build
+
+      - name: Executing AWS CodeBuild task
+        uses: ./
         with:
           projectName: 'testing-codebuild-logs'
