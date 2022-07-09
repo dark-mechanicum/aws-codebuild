@@ -14,7 +14,7 @@ jobs:
       - name: Executing AWS CodeBuild task
         uses: dark-mechanicum/aws-codebuild@v1
         with:
-          projectName: '<your-aws-codebuild-job-name-here>'
+          projectName: 'testing-codebuild-logs'
         env:
           CODEBUILD__environmentVariablesOverride: '[
             { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
