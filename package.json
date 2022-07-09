@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "copyfiles --all --error src/**/*.yml dist/ && tsc",
+    "build": "copyfiles --all --error *.yml dist/ && tsc",
     "lint": "eslint --ext ts .",
     "test": "jest --detectOpenHandles --passWithNoTests"
   },
