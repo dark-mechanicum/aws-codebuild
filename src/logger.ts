@@ -74,9 +74,6 @@ class CloudWatchLogger extends EventEmitter {
    */
   public stopListen() {
     this.isStopping = true;
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
   }
 
   /**
