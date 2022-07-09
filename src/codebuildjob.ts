@@ -69,7 +69,7 @@ class CodeBuildJob extends EventEmitter {
     }
 
     if (this.currentPhase !== 'COMPLETED') {
-      this.timeout = setTimeout(this.wait, 1000);
+      this.timeout = setTimeout(this.wait, 20000);
     }
   }
 
