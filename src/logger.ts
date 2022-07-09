@@ -104,7 +104,7 @@ class CloudWatchLogger extends EventEmitter {
         const maxTimestamp = Math.max(...(events as OutputLogEvents).map(e => e.timestamp as number));
 
         if (maxTimestamp > this.maxTimestamp) {
-          this.maxTimestamp = maxTimestamp;
+          this.maxTimestamp = maxTimestamp + 1;
         }
 
         // recursively calling request for getting additional log events
