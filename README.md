@@ -3,15 +3,23 @@
 Simple, but very powerful GitHub Action to trigger AWS CodeBuild jobs with overrides all parameters and job execution log output.
 
 ```yaml
+name: Running example
+on: [push]
+
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
 
-- name: AWS CodeBuild Job
-  uses: dark-mechanicum/aws-codebuild@1
-  with:
-    projectName: '<your-aws-codebuild-job-name-here>'
+jobs:
+  deploy:
+    name: 'Deployment'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing AWS CodeBuild task
+        uses: dark-mechanicum/aws-codebuild@1
+        with:
+          projectName: '<your-aws-codebuild-job-name-here>'
 ```
 
 ## Description
@@ -41,7 +49,7 @@ Setting up credentials files ([AWS Documentation](https://docs.aws.amazon.com/sd
 - name: AWS CodeBuild Job
   uses: dark-mechanicum/aws-codebuild@1
   with:
-  projectName: '<your-aws-codebuild-job-name-here>'
+    projectName: '<your-aws-codebuild-job-name-here>'
 ```
 
 ## Configuration
