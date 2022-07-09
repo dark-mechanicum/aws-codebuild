@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Executing AWS CodeBuild task
-        uses: dark-mechanicum/aws-codebuild@1
+        uses: dark-mechanicum/aws-codebuild@v1
         with:
           projectName: '<your-aws-codebuild-job-name-here>'
         env:
