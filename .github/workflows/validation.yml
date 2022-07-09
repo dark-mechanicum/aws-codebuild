@@ -1,0 +1,12 @@
+name: Running example
+on: [push]
+
+jobs:
+  planning:
+    name: Verifying
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: dark-mechanicum/aws-codebuild@main
+        with:
+          projectName: 'testing-codebuild-logs'
