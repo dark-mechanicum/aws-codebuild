@@ -1,5 +1,4 @@
 name: 'dark-mechanicum/aws-codebuild'
-main: 'dist/index.js'
 description: 'GitHub Action to execute AWs CodeBuild jobs'
 inputs:
   projectName:
@@ -7,4 +6,4 @@ inputs:
     required: true
 runs:
   using: 'node16'
-  main: 'index.js'
+  main: 'dist/index.js'
