@@ -1,9 +1,13 @@
 name: 'dark-mechanicum/aws-codebuild'
+author: 'Andrei  Kazakou <a.v.kazakou@gmail.com>'
 description: 'GitHub Action to execute AWs CodeBuild jobs'
+branding:
+  icon: 'upload-cloud'
+  color: 'orange'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
 inputs:
   projectName:
     description: 'The name of the CodeBuild build project to start running a build'
     required: true
-runs:
-  using: 'node16'
-  main: 'dist/index.js'
