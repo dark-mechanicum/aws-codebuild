@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
+import nconf from 'nconf';
 import { CodeBuildJob } from './codebuildjob';
-import * as nconf from 'nconf';
 
-const config = nconf.env({ separator: '_', parseValues: true }).overrides();
+const config = nconf.env({ separator: '_', parseValues: true });
 
 const job = new CodeBuildJob({
   projectName: config.get('INPUT:projectName'),
