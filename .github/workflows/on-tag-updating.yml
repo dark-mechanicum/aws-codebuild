@@ -1,0 +1,21 @@
+name: Running example
+on: [push]
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  deploy:
+    name: 'Deployment'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing AWS CodeBuild task
+        uses: dark-mechanicum/aws-codebuild@1
+        with:
+          projectName: '<your-aws-codebuild-job-name-here>'
+        env:
+          CODEBUILD__environmentVariablesOverride: '[
+            { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+          ]'
