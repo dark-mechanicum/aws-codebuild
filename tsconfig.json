@@ -7,7 +7,7 @@
       "__mocks__"
     ],
     "outDir": "dist",
-    "target": "ES2019",
+    "target": "es2015",
     "module": "commonjs",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -19,7 +19,7 @@
     "inlineSourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "declaration": true,
+    "declaration": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "removeComments": true,

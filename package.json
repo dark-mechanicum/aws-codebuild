@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "copyfiles --all --error *.yml dist/ && tsc",
+    "compile": "ncc build src/index.ts -o dist --license licenses.txt",
     "lint": "eslint --ext ts .",
     "test": "jest --detectOpenHandles --passWithNoTests"
   },
@@ -21,6 +21,7 @@
     "@types/node": "^18.0.3",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
+    "@vercel/ncc": "^0.34.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.19.0",
     "jest": "^28.1.2",
