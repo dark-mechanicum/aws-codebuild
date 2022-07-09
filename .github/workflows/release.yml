@@ -1,5 +1,5 @@
 name: Running example
-on: [push]
+on: [release]
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
