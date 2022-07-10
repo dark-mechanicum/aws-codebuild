@@ -1,12 +1,11 @@
 import * as core from '@actions/core';
 import { CloudWatchLogs } from 'aws-sdk';
-import { EventEmitter } from 'events';
-import { GetLogEventsRequest, OutputLogEvent, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
+import { GetLogEventsRequest, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
 
 /**
  * CloudWatchLogs logs stream connector
  */
-class CloudWatchLogger extends EventEmitter {
+class CloudWatchLogger {
   /**
    * Client for connecting to the CloudWatchLogs log streams
    * @protected
@@ -41,7 +40,7 @@ class CloudWatchLogger extends EventEmitter {
    * Amount of extra loops for logs download, before logger shutdown.
    * @protected
    */
-  protected extraLoops = 2;
+  protected extraLoops = 1;
 
   /**
    * How lon we should wait, before repeat request to API for getting new portion of logs
@@ -50,12 +49,16 @@ class CloudWatchLogger extends EventEmitter {
   protected timeoutDelay = 5000;
 
   /**
+   * How musch events should be delivered in one response in AWS CloudWatch API response
+   * @protected
+   */
+  protected eventsLimit = 1000;
+
+  /**
    * Create a new instance of CloudWatchLogs stream logger listener
    * @param { logGroupName: string, logStreamName: string } params
    */
   constructor(params: { logGroupName: string, logStreamName: string }) {
-    super();
-
     this.params = params;
     this.getEvents = this.getEvents.bind(this);
     this.startListen = this.startListen.bind(this);
@@ -97,30 +100,38 @@ class CloudWatchLogger extends EventEmitter {
    */
   protected async getEvents(req?: GetLogEventsRequest) {
     // composing request to the CloudWatch Logs API
-    const request: GetLogEventsRequest = req || this.params;
-    request.limit = 2;
-    request.startTime = this.maxTimestamp;
-    request.startFromHead = true;
+    const request: GetLogEventsRequest = {
+      ...(req || this.params),
+      limit: this.eventsLimit,
+    };
+
+    // If you are using a previous nextForwardToken value as the nextToken in this operation, you must specify true for startFromHead.
+    // @see https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html#CWL-GetLogEvents-request-startFromHead
+    if(!request.nextToken) {
+      if (this.maxTimestamp) {
+        // startTime includes logs, to avoid duplication adding 1 millisecond to getting next one logs
+        request.startTime = this.maxTimestamp + 1;
+      } else {
+        request.startFromHead = true;
+      }
+    }
 
     // executing request to the CloudWatch Logs API
     const { events, nextForwardToken: nextToken } = await this.client.getLogEvents(request).promise();
 
     if (events && events.length > 0) {
       // reporting about new messages into logs stream
-      events.forEach(e => this.emit('message', e));
+      events.forEach(e => core.info((e.message as string).trim()));
 
       // calculating startTime parameter for future requests to the CloudWatch Logs API
-      const maxTimestamp = Math.max(...events.map(e => e.timestamp as number));
-      if (!this.maxTimestamp || maxTimestamp > this.maxTimestamp) {
-        this.maxTimestamp = maxTimestamp;
-      }
-    }
+      this.maxTimestamp = Math.max(...events.map(e => e.timestamp as number), this.maxTimestamp);
 
-    // if we have more than one page in stream response,
-    // doing additional requests for getting new messages
-    if (nextToken) {
-      // recursively calling request for getting additional log events
-      await this.getEvents({ ...request, nextToken });
+      // if we have more than one page in stream response,
+      // doing additional requests for getting new messages
+      if (nextToken) {
+        // recursively calling request for getting additional log events
+        await this.getEvents({ ...request, nextToken });
+      }
     }
   }
 }
@@ -147,14 +158,13 @@ class Logger {
    * @param {string} params.logGroupName - CloudWatch Logs group name
    * @param {string} params.logStreamName - CloudWatch Stream name in provided CloudWatch Logs group name
    */
-  constructor({ type, logGroupName, logStreamName }: { type: string, logGroupName: string, logStreamName: string }) {
+  constructor(protected readonly params: { type: string, logGroupName: string, logStreamName: string }) {
+    const { type, logGroupName, logStreamName } = params;
     if (type === 'cloudwatch') {
       this.logger = new CloudWatchLogger({ logGroupName, logStreamName });
     } else {
       throw new Error(`No found CloudWatch config for listening`);
     }
-
-    this.logger.on('message', this.listener.bind(this));
   }
 
   /**
@@ -164,6 +174,14 @@ class Logger {
     if (!this.isStarted) {
       this.isStarted = true;
       this.logger.startListen().catch(e => core.error(e as Error));
+
+      // grouping logs for GitHub Action output
+      const { logGroupName, logStreamName } = this.params;
+      const groupName = `Logs output for stream ${logGroupName}/${logStreamName}`;
+      core.startGroup(groupName);
+
+      process.on('exit', () => core.endGroup());
+      process.on('uncaughtException', () => core.endGroup());
     }
   }
 
@@ -173,20 +191,6 @@ class Logger {
    */
   public stop(force?: boolean) {
     this.logger.stopListen(force);
-
-    setTimeout(() => {
-      this.logger.removeAllListeners();
-    }, 0);
-  }
-
-  /**
-   * Listener that reacts to the new log events in logs stream
-   * @param {OutputLogEvent} e - Event that contains separate log message from log stream
-   * @protected
-   */
-  protected listener(e: OutputLogEvent) {
-    const { message } = e;
-    core.info((message as string).trim());
   }
 }
 
