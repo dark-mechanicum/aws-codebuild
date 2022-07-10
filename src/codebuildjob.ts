@@ -86,11 +86,12 @@ class CodeBuildJob extends EventEmitter {
   }
 
   protected onPhaseChanged(phase: BuildPhaseType) {
-    core.info(`Build phase was changed to the "${this.currentPhase}" status`);
     this.emit(phase);
 
     if (!(['SUBMITTED', 'QUEUED', 'PROVISIONING'] as BuildPhaseType[]).includes(phase)) {
       this.logger?.start();
+    } else {
+      core.info(`Build phase was changed to the "${this.currentPhase}" status`);
     }
   }
 
