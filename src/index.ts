@@ -14,3 +14,12 @@ const job = new CodeBuildJob({
 });
 
 job.startBuild().catch(error => core.setFailed(error as Error));
+
+/**
+ * Reaction to job cancellation
+ * @see https://docs.github.com/en/actions/managing-workflow-runs/canceling-a-workflow
+ */
+process.on('SIGINT', async () => {
+  await job.cancelBuild();
+  process.exit(0);
+})
