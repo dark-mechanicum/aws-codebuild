@@ -1,12 +1,11 @@
 import * as core from '@actions/core';
 import { CloudWatchLogs } from 'aws-sdk';
-import { EventEmitter } from 'events';
-import { GetLogEventsRequest, OutputLogEvent, OutputLogEvents, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
+import { GetLogEventsRequest, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
 
 /**
  * CloudWatchLogs logs stream connector
  */
-class CloudWatchLogger extends EventEmitter {
+class CloudWatchLogger {
   /**
    * Client for connecting to the CloudWatchLogs log streams
    * @protected
@@ -38,12 +37,28 @@ class CloudWatchLogger extends EventEmitter {
   protected isStopping = false;
 
   /**
+   * Amount of extra loops for logs download, before logger shutdown.
+   * @protected
+   */
+  protected extraLoops = 1;
+
+  /**
+   * How lon we should wait, before repeat request to API for getting new portion of logs
+   * @protected
+   */
+  protected timeoutDelay = 5000;
+
+  /**
+   * How musch events should be delivered in one response in AWS CloudWatch API response
+   * @protected
+   */
+  protected eventsLimit = 1000;
+
+  /**
    * Create a new instance of CloudWatchLogs stream logger listener
    * @param { logGroupName: string, logStreamName: string } params
    */
   constructor(params: { logGroupName: string, logStreamName: string }) {
-    super();
-
     this.params = params;
     this.getEvents = this.getEvents.bind(this);
     this.startListen = this.startListen.bind(this);
@@ -53,27 +68,29 @@ class CloudWatchLogger extends EventEmitter {
    * Start listening CloudWatch log stream
    */
   public async startListen() {
-    try {
-      await this.getEvents();
-    } catch (e) {
-      if ((e as Error).name === 'ResourceNotFoundException') {
-        core.info(`CloudWatch stream ${this.params.logGroupName}/${this.params.logStreamName} not found. Trying again...`);
-        return;
-      }
+    // processing new events from CloudWatch Logs stream
+    await this.getEvents();
 
-      core.error(e as Error);
-    }
+    // making decision about stopping logs listening
+    if (!(this.isStopping && this.extraLoops <= 0)) {
+      this.isStopping && this.extraLoops--;
 
-    if (!this.isStopping) {
-      this.timeout = setTimeout(this.startListen, 10000);
+      // scheduling new request to CloudWatch Logs API endpoint
+      this.timeout = setTimeout(this.startListen, this.timeoutDelay);
     }
   }
 
   /**
    * Stop listening CloudWatchLogs stream
+   * @param {boolean=} force - Is that stop signal should be processed immediately
    */
-  public stopListen() {
+  public stopListen(force?: boolean) {
     this.isStopping = true;
+
+    if (force) {
+      this.extraLoops = 0;
+      clearTimeout(this.timeout);
+    }
   }
 
   /**
@@ -82,30 +99,38 @@ class CloudWatchLogger extends EventEmitter {
    * @protected
    */
   protected async getEvents(req?: GetLogEventsRequest) {
-    const request: GetLogEventsRequest = {...(req || this.params as GetLogEventsRequest)};
-    request.limit = 1000;
+    // composing request to the CloudWatch Logs API
+    const request: GetLogEventsRequest = {
+      ...(req || this.params),
+      limit: this.eventsLimit,
+    };
 
-    if (this.maxTimestamp) {
-      request.startTime = this.maxTimestamp;
+    // If you are using a previous nextForwardToken value as the nextToken in this operation, you must specify true for startFromHead.
+    // @see https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html#CWL-GetLogEvents-request-startFromHead
+    if(!request.nextToken) {
+      if (this.maxTimestamp) {
+        // startTime includes logs, to avoid duplication adding 1 millisecond to getting next one logs
+        request.startTime = this.maxTimestamp + 1;
+      } else {
+        request.startFromHead = true;
+      }
     }
 
-    const { events , nextForwardToken } = await this.client.getLogEvents(request).promise();
+    // executing request to the CloudWatch Logs API
+    const { events, nextForwardToken: nextToken } = await this.client.getLogEvents(request).promise();
 
     if (events && events.length > 0) {
-      // reporting about new messages in the logs stream
-      events.forEach(e => this.emit('message', e));
+      // reporting about new messages into logs stream
+      events.forEach(e => core.info((e.message as string).trim()));
+
+      // calculating startTime parameter for future requests to the CloudWatch Logs API
+      this.maxTimestamp = Math.max(...events.map(e => e.timestamp as number), this.maxTimestamp);
 
       // if we have more than one page in stream response,
       // doing additional requests for getting new messages
-      if (nextForwardToken) {
-        const maxTimestamp = Math.max(...(events as OutputLogEvents).map(e => e.timestamp as number));
-
-        if (maxTimestamp > this.maxTimestamp) {
-          this.maxTimestamp = maxTimestamp + 1;
-        }
-
+      if (nextToken) {
         // recursively calling request for getting additional log events
-        await this.getEvents({ ...request, nextToken: nextForwardToken });
+        await this.getEvents({ ...request, nextToken });
       }
     }
   }
@@ -133,14 +158,13 @@ class Logger {
    * @param {string} params.logGroupName - CloudWatch Logs group name
    * @param {string} params.logStreamName - CloudWatch Stream name in provided CloudWatch Logs group name
    */
-  constructor({ type, logGroupName, logStreamName }: { type: string, logGroupName: string, logStreamName: string }) {
+  constructor(protected readonly params: { type: string, logGroupName: string, logStreamName: string }) {
+    const { type, logGroupName, logStreamName } = params;
     if (type === 'cloudwatch') {
-      this.logger = new CloudWatchLogger({ logGroupName, logStreamName })
+      this.logger = new CloudWatchLogger({ logGroupName, logStreamName });
     } else {
-      throw new Error(`No found CloudWatch config for listening`)
+      throw new Error(`No found CloudWatch config for listening`);
     }
-
-    this.logger.on('message', this.listener.bind(this));
   }
 
   /**
@@ -149,31 +173,27 @@ class Logger {
   public start() {
     if (!this.isStarted) {
       this.isStarted = true;
-      this.logger.startListen();
+      this.logger.startListen().catch(e => core.error(e as Error));
+
+      // grouping logs for GitHub Action output
+      const { logGroupName, logStreamName } = this.params;
+      const groupName = `Logs output for stream ${logGroupName}/${logStreamName}`;
+      core.startGroup(groupName);
+
+      process.on('exit', () => core.endGroup());
+      process.on('uncaughtException', () => core.endGroup());
     }
   }
 
   /**
    * Stop listening logs stream
+   * @param {boolean=} force - Is that stop signal should be processed immediately
    */
-  public stop() {
-    this.logger.stopListen();
-
-    setTimeout(() => {
-      this.logger.removeAllListeners();
-    }, 0);
-  }
-
-  /**
-   * Listener that reacts to the new log events in logs stream
-   * @param {OutputLogEvent} e - Event that contains separate log message from log stream
-   * @protected
-   */
-  protected listener(e: OutputLogEvent) {
-    e && e.message && core.info(e.message.trim());
+  public stop(force?: boolean) {
+    this.logger.stopListen(force);
   }
 }
 
 export {
   Logger,
-}
+};

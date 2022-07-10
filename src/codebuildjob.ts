@@ -55,6 +55,18 @@ class CodeBuildJob extends EventEmitter {
   }
 
   /**
+   * Canceling job execution
+   */
+  public async cancelBuild() {
+    core.info(`Canceling job ${this.build?.id}`);
+    await this.client.stopBuild({ id: this.build?.id as string }).promise();
+    core.info(`Build ${this.build?.id} was successfully canceled`);
+
+    clearTimeout(this.timeout);
+    this.logger?.stop(true);
+  }
+
+  /**
    * Wait till build job reach phase where logs can be obtained
    * @protected
    */
@@ -69,16 +81,17 @@ class CodeBuildJob extends EventEmitter {
     }
 
     if (this.currentPhase !== 'COMPLETED') {
-      this.timeout = setTimeout(this.wait, 20000);
+      this.timeout = setTimeout(this.wait, 5000);
     }
   }
 
   protected onPhaseChanged(phase: BuildPhaseType) {
-    core.info(`Build phase was changed to the "${this.currentPhase}" status`);
     this.emit(phase);
 
     if (!(['SUBMITTED', 'QUEUED', 'PROVISIONING'] as BuildPhaseType[]).includes(phase)) {
       this.logger?.start();
+    } else {
+      core.info(`Build phase was changed to the "${this.currentPhase}" status`);
     }
   }
 
