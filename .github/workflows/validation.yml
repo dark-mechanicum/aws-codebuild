@@ -1,9 +1,9 @@
-name: Running example
+name: Validation
 on: [push]
 
 jobs:
   planning:
-    name: Verifying
+    name: Executing AWS CodeBuild Job
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code

@@ -1,4 +1,4 @@
-name: Running example
+name: Release
 on: [release]
 
 env:
@@ -8,7 +8,7 @@ env:
 
 jobs:
   deploy:
-    name: 'Deployment'
+    name: Validation
     runs-on: ubuntu-latest
     steps:
       - name: Executing AWS CodeBuild task
