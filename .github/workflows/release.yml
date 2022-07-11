@@ -18,7 +18,7 @@ jobs:
         run: git push origin :refs/tags/v1
 
       - name: Update v1 tag locally
-        run: git tag -fa v1
+        run: git tag -fa v1 -m "Pointing v1 to the ${{ github.ref }}"
 
       - name: Push tags to the remote
         run: git push origin main --tags
