@@ -11,6 +11,9 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
+      - name: Setup Git User
+        uses: fregante/setup-git-user@v1
+
       - name: Remove remove v1 tag
         run: git push origin :refs/tags/v1
 
