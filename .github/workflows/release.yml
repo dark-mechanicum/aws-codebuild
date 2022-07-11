@@ -1,14 +1,39 @@
-name: Release
-on: [release]
-
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: ${{ secrets.AWS_REGION }}
+name: Create new v1 release
+on:
+  release:
+    types: [published]
 
 jobs:
+  updating_tag:
+    name: Release v1 version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Remove remove v1 tag
+        run: git push origin :refs/tags/v1
+
+      - name: Update v1 tag locally
+        run: git tag -fa v1
+
+      - name: Push tags to the remote
+        run: git push origin main --tags
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1
+          release_name: Major release version
+          body: Update major release version to the ${{ github.ref }}
+          draft: false
+          prerelease: false
+
   deploy:
-    name: Validation
+    needs: [ updating_tag ]
+    name: Validate v1 release updates
     runs-on: ubuntu-latest
     steps:
       - name: Executing AWS CodeBuild task

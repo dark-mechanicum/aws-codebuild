@@ -1,6 +1,6 @@
 name: 'dark-mechanicum/aws-codebuild'
 author: 'Andrei  Kazakou <a.v.kazakou@gmail.com>'
-description: 'GitHub Action to execute AWs CodeBuild jobs'
+description: 'GitHub Action to execute AWS CodeBuild jobs'
 branding:
   icon: 'upload-cloud'
   color: 'orange'
