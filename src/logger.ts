@@ -121,7 +121,7 @@ class CloudWatchLogger {
 
     if (events && events.length > 0) {
       // reporting about new messages into logs stream
-      events.forEach(e => core.info((e.message as string).trim()));
+      events.forEach(e => core.info((e.message as string).trimRight()));
 
       // calculating startTime parameter for future requests to the CloudWatch Logs API
       this.maxTimestamp = Math.max(...events.map(e => e.timestamp as number), this.maxTimestamp);
