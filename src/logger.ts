@@ -196,4 +196,5 @@ class Logger {
 
 export {
   Logger,
+  CloudWatchLogger,
 };
