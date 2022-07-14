@@ -61,3 +61,37 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     expect(actionsCoreInfo).toBeCalledTimes(8);
   });
 });
+
+describe('CloudWatchLogs Logger Timers', () => {
+  let logger: CloudWatchLogger;
+
+  beforeEach(() => {
+    logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' });
+    logger['getEvents'] = jest.fn();
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  it('should start timer and execute it 2 times', async () => {
+    const getEventsMock = logger['getEvents'];
+    await logger.startListen();
+
+    expect(getEventsMock).toBeCalledTimes(1);
+    logger.stopListen();
+    jest.runOnlyPendingTimers();
+    expect(getEventsMock).toBeCalledTimes(2);
+  });
+
+  it('should start timer and execute it 1 times on force stop', async () => {
+    const getEventsMock = logger['getEvents'];
+    await logger.startListen();
+
+    expect(getEventsMock).toBeCalledTimes(1);
+    logger.stopListen(true);
+    jest.runOnlyPendingTimers();
+    expect(getEventsMock).toBeCalledTimes(1);
+  });
+})
