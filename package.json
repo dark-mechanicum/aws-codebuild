@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "compile": "ncc build src/index.ts -o dist --license licenses.txt",
-    "lint": "eslint --ext ts .",
+    "lint": "eslint --max-warnings 0 --ext ts .",
     "test": "jest --detectOpenHandles --passWithNoTests"
   },
   "dependencies": {
@@ -53,7 +53,7 @@
     },
     "globals": {
       "ts-jest": {
-        "tsConfig": "tsconfig.lint.json",
+        "tsconfig": "tsconfig.lint.json",
         "diagnostics": true
       }
     },

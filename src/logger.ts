@@ -37,12 +37,6 @@ class CloudWatchLogger {
   protected isStopping = false;
 
   /**
-   * Amount of extra loops for logs download, before logger shutdown.
-   * @protected
-   */
-  protected extraLoops = 1;
-
-  /**
    * How lon we should wait, before repeat request to API for getting new portion of logs
    * @protected
    */
@@ -71,11 +65,7 @@ class CloudWatchLogger {
     // processing new events from CloudWatch Logs stream
     await this.getEvents();
 
-    // making decision about stopping logs listening
-    if (!(this.isStopping && this.extraLoops <= 0)) {
-      this.isStopping && this.extraLoops--;
-
-      // scheduling new request to CloudWatch Logs API endpoint
+    if (!this.isStopping) {
       this.timeout = setTimeout(this.startListen, this.timeoutDelay);
     }
   }
@@ -88,7 +78,6 @@ class CloudWatchLogger {
     this.isStopping = true;
 
     if (force) {
-      this.extraLoops = 0;
       clearTimeout(this.timeout);
     }
   }
@@ -196,4 +185,5 @@ class Logger {
 
 export {
   Logger,
+  CloudWatchLogger,
 };
