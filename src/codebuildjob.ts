@@ -1,14 +1,14 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
 import { Logger } from './logger';
-import { BatchGetBuildsOutput, BuildPhaseType, Builds, LogsLocation, StartBuildInput } from 'aws-sdk/clients/codebuild';
+import { BatchGetBuildsOutput, BuildPhaseType, Builds, LogsLocation, StartBuildInput, Build } from 'aws-sdk/clients/codebuild';
 import { EventEmitter } from 'events';
 
 class CodeBuildJob extends EventEmitter {
   protected params: StartBuildInput;
   protected client = new CodeBuild();
-  protected build: CodeBuild.Build | undefined = undefined;
-  protected logger: Logger | undefined;
+  protected build: CodeBuild.Build = {};
+  protected logger: Logger = undefined as unknown as Logger;
   protected timeout: NodeJS.Timeout | undefined;
   protected currentPhase: BuildPhaseType | 'STARTING' = 'STARTING';
 
@@ -58,12 +58,12 @@ class CodeBuildJob extends EventEmitter {
    * Canceling job execution
    */
   public async cancelBuild() {
-    core.info(`Canceling job ${this.build?.id}`);
-    await this.client.stopBuild({ id: this.build?.id as string }).promise();
-    core.info(`Build ${this.build?.id} was successfully canceled`);
+    core.info(`Canceling job ${this.build.id}`);
+    await this.client.stopBuild({ id: this.build.id as string }).promise();
+    core.info(`Build ${this.build.id} was successfully canceled`);
 
     clearTimeout(this.timeout);
-    this.logger?.stop(true);
+    this.logger.stop(true);
   }
 
   /**
@@ -73,11 +73,11 @@ class CodeBuildJob extends EventEmitter {
   protected async wait() {
     const { id } = this.build as CodeBuild.Build;
     const { builds } = await this.client.batchGetBuilds({ ids: [ id as string ] }).promise() as BatchGetBuildsOutput;
-    const build = (builds as Builds).at(0);
+    const build = (builds as Builds).at(0) as Build;
 
-    if (build?.currentPhase !== this.currentPhase) {
-      this.currentPhase = build?.currentPhase as BuildPhaseType;
-      this.emit('phaseChanged', build?.currentPhase);
+    if (build.currentPhase !== this.currentPhase) {
+      this.currentPhase = build.currentPhase as BuildPhaseType;
+      this.emit('phaseChanged', build.currentPhase);
     }
 
     if (this.currentPhase !== 'COMPLETED') {
@@ -89,14 +89,14 @@ class CodeBuildJob extends EventEmitter {
     this.emit(phase);
 
     if (!(['SUBMITTED', 'QUEUED', 'PROVISIONING'] as BuildPhaseType[]).includes(phase)) {
-      this.logger?.start();
+      this.logger.start();
     } else {
       core.info(`Build phase was changed to the "${this.currentPhase}" status`);
     }
   }
 
   protected onCompleted() {
-    this.logger?.stop();
+    this.logger.stop();
   }
 }
 
