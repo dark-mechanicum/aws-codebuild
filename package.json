@@ -7,7 +7,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "compile": "ncc build src/index.ts -o dist --license licenses.txt",
-    "lint": "eslint --ext ts .",
+    "lint": "eslint --strict --ext ts .",
     "test": "jest --detectOpenHandles --passWithNoTests"
   },
   "dependencies": {
