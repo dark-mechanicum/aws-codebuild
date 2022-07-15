@@ -1,18 +1,18 @@
-const mocks: Record<string, jest.Mock> = {
+const setFailedMocks: Record<string, jest.Mock> = {
   actionsCoreGetInput: jest.fn().mockName('Mock: "@actions/core".getInput()'),
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
   startBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.startBuild()'),
 };
 
 const CodeBuildJobMock = jest.fn(() => ({
-  startBuild: mocks.startBuild,
-  cancelBuild: mocks.cancelBuild,
+  startBuild: setFailedMocks.startBuild,
+  cancelBuild: setFailedMocks.cancelBuild,
 }))
 
 jest.mock('@actions/core', () => ({
-  info: mocks.actionsCoreInfo,
-  getInput: mocks.actionsCoreGetInput,
-  setFailed: mocks.actionsCoreSetFailed,
+  info: setFailedMocks.actionsCoreInfo,
+  getInput: setFailedMocks.actionsCoreGetInput,
+  setFailed: setFailedMocks.actionsCoreSetFailed,
 }));
 
 jest.mock('../../../src/codebuildjob', () => ({
@@ -21,7 +21,7 @@ jest.mock('../../../src/codebuildjob', () => ({
 
 describe('Testing setfailed functionality', () => {
   it('should set job failed on startBuild() error', async () => {
-    const { startBuild, actionsCoreGetInput, actionsCoreSetFailed } = mocks;
+    const { startBuild, actionsCoreGetInput, actionsCoreSetFailed } = setFailedMocks;
     startBuild.mockRejectedValue(new Error('test'));
     actionsCoreGetInput.mockReturnValue('test');
 
