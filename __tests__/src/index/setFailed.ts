@@ -4,7 +4,7 @@ const setFailedMocks: Record<string, jest.Mock> = {
   startBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.startBuild()'),
 };
 
-const CodeBuildJobMock = jest.fn(() => ({
+const setFailedCodeBuildJobMock = jest.fn(() => ({
   startBuild: setFailedMocks.startBuild,
   cancelBuild: setFailedMocks.cancelBuild,
 }))
@@ -16,10 +16,10 @@ jest.mock('@actions/core', () => ({
 }));
 
 jest.mock('../../../src/codebuildjob', () => ({
-  CodeBuildJob: CodeBuildJobMock,
+  CodeBuildJob: setFailedCodeBuildJobMock,
 }));
 
-describe('Testing setfailed functionality', () => {
+describe('Testing setFailed functionality', () => {
   it('should set job failed on startBuild() error', async () => {
     const { startBuild, actionsCoreGetInput, actionsCoreSetFailed } = setFailedMocks;
     startBuild.mockRejectedValue(new Error('test'));
