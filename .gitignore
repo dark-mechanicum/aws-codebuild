@@ -104,3 +104,6 @@ typings/
 
 # Idea IDE
 .idea
+
+# VSCode
+.vscode

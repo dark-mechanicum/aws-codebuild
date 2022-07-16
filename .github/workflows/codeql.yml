@@ -73,7 +73,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Run lint of code
+      - name: Compile sources to "./compiled" directory
         run: npx tsc --outDir compiled
 
       # ℹ️ Command-line programs to run using the OS shell.
