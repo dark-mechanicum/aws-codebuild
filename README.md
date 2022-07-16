@@ -1,5 +1,8 @@
 # dark-mechanicum/aws-codebuild
 
+[![CodeQL Badge for v1 tag](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/codeql.yml/badge.svg?tag=v1)](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/codeql.yml)
+[![Validation Badge for v1 tag](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/validation.yml/badge.svg?tag=v1)](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/validation.yml)
+
 Simple, but very powerful GitHub Action to trigger AWS CodeBuild jobs with overrides all parameters and job execution log output.
 
 ```yaml
@@ -107,7 +110,7 @@ For example:
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["codebuild:StartBuild", "codebuild:BatchGetBuilds"],
+      "Action": ["codebuild:StartBuild", "codebuild:StopBuild", "codebuild:BatchGetBuilds"],
       "Resource": ["arn:aws:codebuild:REGION:ACCOUNT_ID:project/PROJECT_NAME"]
     },
     {
