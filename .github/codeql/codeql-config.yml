@@ -1,0 +1,8 @@
+name: "CodeQL default config"
+paths:
+  - src
+  - compiled
+paths-ignore:
+  - __tests__
+  - dist
+  - node_modules
