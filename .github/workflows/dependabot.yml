@@ -1,14 +1,16 @@
-name: Validation
+name: Dependabot
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
-    branches: [ 'dependabot/**' ]
-
-# Need implement compilation of code and pushing that code to the branch changes
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - 'dependabot/**'
 
 jobs:
   build:
-    name: Verifying
+    name: Recompile
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -36,6 +38,9 @@ jobs:
 
       - name: Compile action package
         run: npm run compile
+
+      - name: Setup Git User
+        uses: fregante/setup-git-user@v1
 
       - name: Pushing recompiled
         run: |
