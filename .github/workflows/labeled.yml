@@ -9,16 +9,16 @@ jobs:
     name: Recompile
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '16'
-
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.ref_name }}
+          ref: ${GITHUB_REF##*/}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16'
 
       - name: Restore cache of Node.js project dependencies
         id: cache-node-modules
