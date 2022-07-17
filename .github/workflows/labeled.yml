@@ -15,9 +15,10 @@ jobs:
           node-version: '16'
 
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - name: Restore cache of Node.js project dependencies
         id: cache-node-modules
@@ -37,6 +38,8 @@ jobs:
 
       - name: Setup Git User
         uses: fregante/setup-git-user@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pushing recompiled
         run: |
