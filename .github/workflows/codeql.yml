@@ -54,7 +54,7 @@ jobs:
           # queries: security-extended,security-and-quality
 
       - name: Setup Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
