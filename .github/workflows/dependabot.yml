@@ -1,15 +1,11 @@
-name: Dependabot
+name: Label
 on:
   pull_request:
     types:
-      - opened
-      - reopened
-      - synchronize
-    branches:
-      - 'dependabot/**'
-
+      - labeled
 jobs:
   build:
+    if: github.event.label.name == 'recompile'
     name: Recompile
     runs-on: ubuntu-latest
     steps:
