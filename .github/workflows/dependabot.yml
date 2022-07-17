@@ -39,6 +39,9 @@ jobs:
       - name: Compile action package
         run: npm run compile
 
+      - name: Setup Git User
+        uses: fregante/setup-git-user@v1
+
       - name: Pushing recompiled
         run: |
           git add dist
