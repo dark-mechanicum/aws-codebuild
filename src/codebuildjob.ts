@@ -50,8 +50,13 @@ class CodeBuildJob extends EventEmitter {
       }
 
       this.logger = new Logger(options);
-      await this.wait();
     }
+
+    if (!this.logger) {
+      core.info(`Can't find logs output for AWS CodeBuild job: ${build.id}`);
+    }
+
+    await this.wait();
   }
 
   /**
@@ -63,7 +68,7 @@ class CodeBuildJob extends EventEmitter {
     core.info(`Build ${this.build.id} was successfully canceled`);
 
     clearTimeout(this.timeout);
-    this.logger.stop(true);
+    this.logger?.stop(true);
   }
 
   /**
@@ -85,18 +90,27 @@ class CodeBuildJob extends EventEmitter {
     }
   }
 
+  /**
+   * Reaction to change of job build phase
+   * @param {BuildPhaseType} phase - Description of new phase
+   * @protected
+   */
   protected onPhaseChanged(phase: BuildPhaseType) {
     this.emit(phase);
+    core.info(`Build phase was changed to the "${this.currentPhase}"`);
 
-    if (!(['SUBMITTED', 'QUEUED', 'PROVISIONING'] as BuildPhaseType[]).includes(phase)) {
-      this.logger.start();
-    } else {
-      core.info(`Build phase was changed to the "${this.currentPhase}" status`);
+    const phasesWithoutLogs: BuildPhaseType[] = ['SUBMITTED', 'QUEUED', 'PROVISIONING'];
+    if (!phasesWithoutLogs.includes(phase)) {
+      this.logger?.start();
     }
   }
 
+  /**
+   * Reaction to the completion of codebuild job
+   * @protected
+   */
   protected onCompleted() {
-    this.logger.stop();
+    this.logger?.stop();
   }
 }
 
