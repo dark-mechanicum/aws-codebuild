@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import nconf from 'nconf';
 import { CodeBuildJob } from './codebuildjob';
+import { AWSError } from 'aws-sdk';
 
 const config = nconf.env({
   separator: '__',
@@ -20,6 +21,11 @@ job.startBuild().catch(error => core.setFailed(error as Error));
  * @see https://docs.github.com/en/actions/managing-workflow-runs/canceling-a-workflow
  */
 process.on('SIGINT', async () => {
-  await job.cancelBuild();
+  try {
+    await job.cancelBuild();
+  } catch (error) {
+    core.error(error as AWSError);
+  }
+
   process.exit(0);
 })

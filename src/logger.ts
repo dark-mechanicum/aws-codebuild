@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import { CloudWatchLogs } from 'aws-sdk';
+import { CloudWatchLogs, AWSError } from 'aws-sdk';
 import { GetLogEventsRequest, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
 
 /**
@@ -43,7 +43,7 @@ class CloudWatchLogger {
   protected timeoutDelay = 5000;
 
   /**
-   * How musch events should be delivered in one response in AWS CloudWatch API response
+   * How many events should be delivered in one response in AWS CloudWatch API response
    * @protected
    */
   protected eventsLimit = 1000;
@@ -106,21 +106,32 @@ class CloudWatchLogger {
     }
 
     // executing request to the CloudWatch Logs API
-    const { events, nextForwardToken: nextToken } = await this.client.getLogEvents(request).promise();
+    try {
+      const { events, nextForwardToken: nextToken } = await this.client.getLogEvents(request).promise();
 
-    if (events && events.length > 0) {
-      // reporting about new messages into logs stream
-      events.forEach(e => core.info((e.message as string).trimRight()));
+      if (events && events.length > 0) {
+        // reporting about new messages into logs stream
+        events.forEach(e => core.info((e.message as string).trimRight()));
 
-      // calculating startTime parameter for future requests to the CloudWatch Logs API
-      this.maxTimestamp = Math.max(...events.map(e => e.timestamp as number), this.maxTimestamp);
+        // calculating startTime parameter for future requests to the CloudWatch Logs API
+        this.maxTimestamp = Math.max(...events.map(e => e.timestamp as number), this.maxTimestamp);
 
-      // if we have more than one page in stream response,
-      // doing additional requests for getting new messages
-      if (nextToken) {
-        // recursively calling request for getting additional log events
-        await this.getEvents({ ...request, nextToken });
+        // if we have more than one page in stream response,
+        // doing additional requests for getting new messages
+        if (nextToken) {
+          // recursively calling request for getting additional log events
+          await this.getEvents({ ...request, nextToken });
+        }
       }
+    } catch (e) {
+      const { message, code } = e as AWSError;
+
+      // in case if we do not have access to read logs, no make sense listen it again
+      if (code === 'AccessDeniedException') {
+        this.stopListen(true);
+      }
+
+      core.error(message);
     }
   }
 }

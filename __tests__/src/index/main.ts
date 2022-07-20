@@ -2,6 +2,7 @@ const mocks: Record<string, jest.Mock> = {
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
   actionsCoreGetInput: jest.fn().mockName('Mock: "@actions/core".getInput()'),
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
+  actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
   startBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.startBuild()'),
   cancelBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.cancelBuild()'),
 };
@@ -15,6 +16,7 @@ jest.mock('@actions/core', () => ({
   info: mocks.actionsCoreInfo,
   getInput: mocks.actionsCoreGetInput,
   setFailed: mocks.actionsCoreSetFailed,
+  error: mocks.actionsCoreError,
 }));
 
 jest.mock('../../../src/codebuildjob', () => ({
@@ -35,6 +37,7 @@ describe('CodeBuildJob class functionality', () => {
 
   afterEach(() => {
     Object.values(mocks).forEach(mock => mock.mockReset());
+    CodeBuildJobMock.mockReset();
   });
 
   it('should trigger job successfully', async () => {
@@ -70,5 +73,20 @@ describe('CodeBuildJob class functionality', () => {
     jest.spyOn(process, 'exit').mockImplementation(jest.fn().mockName('Mock process.exit()') as never);
     process.emit('SIGINT');
     expect(cancelBuild).toBeCalled();
+  });
+
+  it('should try to cancel job on SIGINT signal with exception', async () => {
+    const { startBuild, actionsCoreGetInput, cancelBuild, actionsCoreError } = mocks;
+    startBuild.mockReturnValue({ catch: jest.fn() });
+    actionsCoreGetInput.mockReturnValue('test');
+    const error = new Error('test error');
+    cancelBuild.mockImplementation(() => {throw error;});
+    jest.spyOn(process, 'exit').mockImplementation(jest.fn().mockName('Mock process.exit()') as never);
+
+    jest.requireMock('../../../src/index');
+    process.emit('SIGINT');
+
+    expect(cancelBuild).toBeCalled();
+    expect(actionsCoreError).toHaveBeenLastCalledWith(error);
   });
 });
