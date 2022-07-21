@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
+import { EventEmitter } from 'events';
 import { Logger } from './logger';
 import {
   BatchGetBuildsOutput,
@@ -8,9 +9,7 @@ import {
   LogsLocation,
   StartBuildInput,
   Build,
-  StatusType,
 } from 'aws-sdk/clients/codebuild';
-import { EventEmitter } from 'events';
 
 class CodeBuildJob extends EventEmitter {
   protected params: StartBuildInput;
@@ -116,12 +115,18 @@ class CodeBuildJob extends EventEmitter {
     if (currentPhase === 'COMPLETED') {
       this.logger?.stop();
 
-      const filedBuildStatuses: StatusType[] = ['FAILED', 'FAULT', 'TIMED_OUT', 'STOPPED'];
-      if (filedBuildStatuses.includes(buildStatus as StatusType)) {
+      if (buildStatus !== 'SUCCEEDED') {
         process.on('exit', () => {
           core.setFailed(`Job ${this.build.id} was finished with failed status: ${buildStatus}`);
         });
       }
+
+      core.setOutput('id', build.id);
+      core.setOutput('success', buildStatus === 'SUCCEEDED');
+      core.setOutput('buildNumber', build.buildNumber);
+      core.setOutput('timeoutInMinutes', build.timeoutInMinutes);
+      core.setOutput('initiator', build.initiator);
+      core.setOutput('buildStatus', build.buildStatus);
     }
   }
 }
