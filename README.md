@@ -27,7 +27,11 @@ jobs:
 
 ## Description
 
-Under the hood it's using JavaScript AWS SDK for making calls to the AWS API. It means, you can put [any parameters](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) for triggering your AWS CodeBuild Job. 
+Under the hood it's using JavaScript AWS SDK for making calls to the AWS API. It means, you can put [any parameters](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) for triggering your AWS CodeBuild Job.
+
+In case if AWS CodeBuild job execution will be failed, it also will fail execution of GitHub Action.
+
+In case if you have enabled AWS CloudWatch logs for AWS CodeBuild job execution, it will put AWS CloudWatch logs output in the GitHub Actions logs output.
 
 ## AWS Credentials
 
@@ -123,3 +127,20 @@ For example:
   ]
 }
 ```
+
+## GitHub Action Outputs
+
+Current action provides a set of outputs, that you can use in the next steps:
+
+* `id` [string] - The unique ID for the build
+* `success` [boolean] - Flag that marks is current AWS CodeBuild job was finished successfully
+* `buildNumber` [number] - The number of the build. For each project, the buildNumber of its first build is 1. The buildNumber of each subsequent build is incremented by 1. If a build is deleted, the buildNumber of other builds does not change.
+* `timeoutInMinutes` [number] - How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed. The default is 60 minutes
+* `initiator` [string] - The AWS entity that started the build
+* `buildStatus` [string] - The final status of the build. Valid values include:
+  * `FAILED`: The build failed.
+  * `FAULT`: The build faulted.
+  * `IN_PROGRESS`: The build is still in progress.
+  * `STOPPED`: The build stopped.
+  * `SUCCEEDED`: The build succeeded.
+  * `TIMED_OUT`: The build timed out.

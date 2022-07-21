@@ -4,6 +4,7 @@ const mocks = {
   stopBuild: jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.stopBuild()'),
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
+  actionsCoreSetOutput: jest.fn().mockName('Mock: "@actions/core".setOutput()'),
   loggerStart: jest.fn().mockName('Mock: "src/logger".Logger.start()'),
   loggerStop: jest.fn().mockName('Mock: "src/logger".Logger.stop()'),
 };
@@ -19,6 +20,7 @@ jest.mock('aws-sdk', () => ({
 jest.mock('@actions/core', () => ({
   info: mocks.actionsCoreInfo,
   setFailed: mocks.actionsCoreSetFailed,
+  setOutput: mocks.actionsCoreSetOutput,
 }));
 
 jest.mock('../../../src/logger', () => ({
