@@ -1,6 +1,5 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
-import { EventEmitter } from 'events';
 import { Logger } from './logger';
 import {
   BatchGetBuildsOutput,
@@ -11,7 +10,7 @@ import {
   Build,
 } from 'aws-sdk/clients/codebuild';
 
-class CodeBuildJob extends EventEmitter {
+class CodeBuildJob {
   protected params: StartBuildInput;
   protected client = new CodeBuild();
   protected build: CodeBuild.Build = {};
@@ -20,12 +19,9 @@ class CodeBuildJob extends EventEmitter {
   protected currentPhase: BuildPhaseType | 'STARTING' = 'STARTING';
 
   constructor(params: StartBuildInput) {
-    super();
     this.params = params;
 
     this.wait = this.wait.bind(this);
-
-    this.on('phaseChanged', this.onPhaseChanged.bind(this));
   }
 
   /**
@@ -85,27 +81,7 @@ class CodeBuildJob extends EventEmitter {
     const { id } = this.build as CodeBuild.Build;
     const { builds } = await this.client.batchGetBuilds({ ids: [ id as string ] }).promise() as BatchGetBuildsOutput;
     const build = (builds as Builds).at(0) as Build;
-
-    if (build.currentPhase !== this.currentPhase) {
-      this.currentPhase = build.currentPhase as BuildPhaseType;
-      this.emit('phaseChanged', build);
-    }
-
-    if (this.currentPhase !== 'COMPLETED') {
-      this.timeout = setTimeout(this.wait, 5000);
-    }
-  }
-
-  /**
-   * Reaction to change of job build phase
-   * @param {Build} build - Description of current build
-   * @protected
-   */
-  protected onPhaseChanged(build: Build) {
     const { currentPhase, buildStatus } = build;
-
-    this.emit(currentPhase as BuildPhaseType);
-    core.info(`Build phase was changed to the "${this.currentPhase}"`);
 
     const phasesWithoutLogs: BuildPhaseType[] = ['SUBMITTED', 'QUEUED', 'PROVISIONING'];
     if (!phasesWithoutLogs.includes(currentPhase as BuildPhaseType)) {
@@ -121,12 +97,23 @@ class CodeBuildJob extends EventEmitter {
         });
       }
 
-      core.setOutput('id', build.id);
-      core.setOutput('success', buildStatus === 'SUCCEEDED');
-      core.setOutput('buildNumber', build.buildNumber);
-      core.setOutput('timeoutInMinutes', build.timeoutInMinutes);
-      core.setOutput('initiator', build.initiator);
-      core.setOutput('buildStatus', build.buildStatus);
+      if (buildStatus !== 'IN_PROGRESS') {
+        core.setOutput('id', build.id);
+        core.setOutput('success', buildStatus === 'SUCCEEDED');
+        core.setOutput('buildNumber', build.buildNumber);
+        core.setOutput('timeoutInMinutes', build.timeoutInMinutes);
+        core.setOutput('initiator', build.initiator);
+        core.setOutput('buildStatus', build.buildStatus);
+      }
+    }
+
+    if (currentPhase !== this.currentPhase) {
+      this.currentPhase = currentPhase as BuildPhaseType;
+      core.info(`Build phase was changed to the "${this.currentPhase}"`);
+    }
+
+    if (build.buildStatus === 'IN_PROGRESS') {
+      this.timeout = setTimeout(this.wait, 5000);
     }
   }
 }
