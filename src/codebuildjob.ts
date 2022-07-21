@@ -118,7 +118,9 @@ class CodeBuildJob extends EventEmitter {
 
       const filedBuildStatuses: StatusType[] = ['FAILED', 'FAULT', 'TIMED_OUT', 'STOPPED'];
       if (filedBuildStatuses.includes(buildStatus as StatusType)) {
-        core.setFailed(`Job ${this.build.id} was finished with failed status: ${buildStatus}`);
+        process.on('exit', () => {
+          core.setFailed(`Job ${this.build.id} was finished with failed status: ${buildStatus}`);
+        });
       }
     }
   }

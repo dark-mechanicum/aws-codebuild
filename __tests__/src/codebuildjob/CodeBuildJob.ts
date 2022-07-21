@@ -187,11 +187,13 @@ describe('CodeBuildJob class functionality', () => {
     await Promise.resolve();
 
     expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'COMPLETED', buildStatus: 'FAILED' }));
-    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
 
     await job.cancelBuild();
     expect(stopBuild).toBeCalled();
     expect(loggerStop).not.toBeCalled();
+
+    process.emit('exit', 1);
+    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
   it('should trigger exception if codebuild job can not be started', async () => {
