@@ -91,7 +91,7 @@ class CodeBuildJob {
     if (currentPhase === 'COMPLETED') {
       this.logger?.stop();
 
-      if (buildStatus !== 'SUCCEEDED') {
+      if (buildStatus !== 'IN_PROGRESS' && buildStatus !== 'SUCCEEDED') {
         process.on('exit', () => {
           core.setFailed(`Job ${this.build.id} was finished with failed status: ${buildStatus}`);
         });
