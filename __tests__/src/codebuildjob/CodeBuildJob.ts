@@ -31,7 +31,7 @@ jest.mock('../../../src/logger', () => ({
 }));
 
 import { CodeBuildJob } from '../../../src/codebuildjob';
-import { StartBuildOutput, BatchGetBuildsOutput, BuildPhaseType, StopBuildOutput } from 'aws-sdk/clients/codebuild';
+import { StartBuildOutput, BatchGetBuildsOutput, StopBuildOutput } from 'aws-sdk/clients/codebuild';
 
 describe('CodeBuildJob class functionality', () => {
   const createAWSResponse = (resolves: unknown) => ({ promise: () => Promise.resolve(resolves) });
@@ -53,10 +53,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should complete whole cycle successfully', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop } = mocks;
-    const [onPhaseChanged] = [jest.fn(), jest.fn()];
     const job = new CodeBuildJob({ projectName: 'test' });
-
-    job.on('phaseChanged', onPhaseChanged);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
@@ -68,31 +65,26 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED' as BuildPhaseType } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'QUEUED' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'PROVISIONING' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'BUILD' }));
     expect(loggerStart).toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'COMPLETED' }));
 
     await job.cancelBuild();
     expect(stopBuild).toBeCalled();
@@ -101,10 +93,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should complete whole cycle successfully without logs', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop } = mocks;
-    const [onPhaseChanged] = [jest.fn(), jest.fn()];
     const job = new CodeBuildJob({ projectName: 'test' });
-
-    job.on('phaseChanged', onPhaseChanged);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
@@ -116,31 +105,26 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED' as BuildPhaseType } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'QUEUED' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'PROVISIONING' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'BUILD' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'COMPLETED' }));
 
     await job.cancelBuild();
     expect(stopBuild).toBeCalled();
@@ -149,10 +133,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should setFail GitHub Action job on failing of AWS CodeBuild job', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
-    const [onPhaseChanged] = [jest.fn(), jest.fn()];
     const job = new CodeBuildJob({ projectName: 'test' });
-
-    job.on('phaseChanged', onPhaseChanged);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
@@ -164,31 +145,26 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD' as BuildPhaseType } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED' as BuildPhaseType, buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'QUEUED' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'PROVISIONING' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'BUILD' }));
     expect(loggerStart).not.toBeCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-
-    expect(onPhaseChanged).toHaveBeenLastCalledWith(expect.objectContaining({ currentPhase: 'COMPLETED', buildStatus: 'FAILED' }));
 
     await job.cancelBuild();
     expect(stopBuild).toBeCalled();
