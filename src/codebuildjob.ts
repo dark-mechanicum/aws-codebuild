@@ -1,7 +1,15 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
 import { Logger } from './logger';
-import { BatchGetBuildsOutput, BuildPhaseType, Builds, LogsLocation, StartBuildInput, Build } from 'aws-sdk/clients/codebuild';
+import {
+  BatchGetBuildsOutput,
+  BuildPhaseType,
+  Builds,
+  LogsLocation,
+  StartBuildInput,
+  Build,
+  StatusType,
+} from 'aws-sdk/clients/codebuild';
 import { EventEmitter } from 'events';
 
 class CodeBuildJob extends EventEmitter {
@@ -19,7 +27,6 @@ class CodeBuildJob extends EventEmitter {
     this.wait = this.wait.bind(this);
 
     this.on('phaseChanged', this.onPhaseChanged.bind(this));
-    this.on('COMPLETED', this.onCompleted.bind(this));
   }
 
   /**
@@ -82,7 +89,7 @@ class CodeBuildJob extends EventEmitter {
 
     if (build.currentPhase !== this.currentPhase) {
       this.currentPhase = build.currentPhase as BuildPhaseType;
-      this.emit('phaseChanged', build.currentPhase);
+      this.emit('phaseChanged', build);
     }
 
     if (this.currentPhase !== 'COMPLETED') {
@@ -92,25 +99,30 @@ class CodeBuildJob extends EventEmitter {
 
   /**
    * Reaction to change of job build phase
-   * @param {BuildPhaseType} phase - Description of new phase
+   * @param {Build} build - Description of current build
    * @protected
    */
-  protected onPhaseChanged(phase: BuildPhaseType) {
-    this.emit(phase);
+  protected onPhaseChanged(build: Build) {
+    const { currentPhase, buildStatus } = build;
+
+    this.emit(currentPhase as BuildPhaseType);
     core.info(`Build phase was changed to the "${this.currentPhase}"`);
 
     const phasesWithoutLogs: BuildPhaseType[] = ['SUBMITTED', 'QUEUED', 'PROVISIONING'];
-    if (!phasesWithoutLogs.includes(phase)) {
+    if (!phasesWithoutLogs.includes(currentPhase as BuildPhaseType)) {
       this.logger?.start();
     }
-  }
 
-  /**
-   * Reaction to the completion of codebuild job
-   * @protected
-   */
-  protected onCompleted() {
-    this.logger?.stop();
+    if (currentPhase === 'COMPLETED') {
+      this.logger?.stop();
+
+      const filedBuildStatuses: StatusType[] = ['FAILED', 'FAULT', 'TIMED_OUT', 'STOPPED'];
+      if (filedBuildStatuses.includes(buildStatus as StatusType)) {
+        process.on('exit', () => {
+          core.setFailed(`Job ${this.build.id} was finished with failed status: ${buildStatus}`);
+        });
+      }
+    }
   }
 }
 
