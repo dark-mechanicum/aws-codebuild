@@ -172,12 +172,16 @@ class CodeBuildJob {
     core.summary.addBreak();
     core.summary.addBreak();
 
-    core.summary.addRaw(`ID: ${build.id}`, true);
-    core.summary.addRaw(`projectName: ${build.projectName}`, true);
-    core.summary.addRaw(`Initiator: ${build.initiator}`, true);
+    core.summary.addRaw(`<strong>Job run ID</strong>: ${build.id}`, true);
+    core.summary.addBreak();
+    core.summary.addRaw(`<strong>Project name</strong>: ${build.projectName}`, true);
+    core.summary.addBreak();
+    core.summary.addRaw(`<strong>Initiator</strong>: ${build.initiator}`, true);
+    core.summary.addBreak();
 
     const { startTime, endTime } = build as { startTime: Date, endTime: Date };
-    core.summary.addRaw(`Total execution time: ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
+    core.summary.addRaw(`<strong>Total execution time:</strong> ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
+    core.summary.addBreak();
 
     const table: SummaryTableRow[] = [[
       {data: 'Phase Name', header: true},
