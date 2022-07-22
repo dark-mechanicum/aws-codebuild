@@ -59,7 +59,10 @@ describe('CodeBuildJob class functionality', () => {
     arn: 'arn:aws:codebuild:us-east-1:972995211738:build/testing-codebuild-logs:d585fe96-caa5-4a64-a7e1-01dcf612bffc',
     startTime: new Date(),
     endTime: new Date(),
-    phases: [ { phaseType: 'phaseType1', phaseStatus: 'phaseStatus1', durationInSeconds: 66 } ]
+    phases: [
+      { phaseType: 'phaseType1', phaseStatus: 'phaseStatus1', durationInSeconds: 66 },
+      { phaseType: 'phaseType2', phaseStatus: 'phaseStatus2' },
+    ]
   };
 
   beforeAll(() => {

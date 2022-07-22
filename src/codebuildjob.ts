@@ -154,7 +154,6 @@ class CodeBuildJob {
    */
   protected async generateSummary(build: Build): Promise<void> {
     core.summary.addHeading(`AWS CodeBuild ${build.id}`);
-    core.summary.addBreak();
 
     const [ ,,,region,accountID ] = (build.arn as string).split(':');
     const projectName = build.projectName as string;
@@ -171,6 +170,11 @@ class CodeBuildJob {
     }
 
     core.summary.addBreak();
+    core.summary.addBreak();
+
+    core.summary.addRaw(`ID: ${build.id}`, true);
+    core.summary.addRaw(`projectName: ${build.projectName}`, true);
+    core.summary.addRaw(`Initiator: ${build.initiator}`, true);
 
     const { startTime, endTime } = build as { startTime: Date, endTime: Date };
     core.summary.addRaw(`Total execution time: ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
@@ -186,10 +190,12 @@ class CodeBuildJob {
       table.push([
         { data: phase.phaseType as string },
         { data: phase.phaseStatus as string },
-        { data: convertMsToTime(Number(phase.durationInSeconds) * 1000) },
+        { data: convertMsToTime(Number(phase.durationInSeconds || 0) * 1000) },
       ]);
     })
 
+    core.summary.addBreak();
+    core.summary.addBreak();
     core.summary.addTable(table);
 
     await core.summary.write();
