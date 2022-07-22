@@ -30,7 +30,11 @@ jest.mock('@actions/core', () => ({
   error: mocks.actionsCoreError,
   setFailed: mocks.actionsCoreSetFailed,
   setOutput: mocks.actionsCoreSetOutput,
-  exportVariable: mocks.actionsCoreExportVariable,
+  summary: {
+    addHeading: jest.fn(),
+    addBreak: jest.fn(),
+    write: jest.fn(),
+  },
 }));
 
 jest.mock('../../../src/logger', () => ({

@@ -150,13 +150,10 @@ class CodeBuildJob {
    * @see https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
    * @protected
    */
-  protected generateSummary(build: Build): void {
-    const summary: string[] = [];
-
-    summary.push(`AWS CodeBuild build ${build.id} summary`);
-    summary.push('---');
-
-    core.exportVariable('GITHUB_STEP_SUMMARY', summary.join("\n"));
+  protected async generateSummary(build: Build): Promise<void> {
+    core.summary.addHeading(`AWS CodeBuild build ${build.id} summary`);
+    core.summary.addBreak();
+    await core.summary.write();
   }
 }
 

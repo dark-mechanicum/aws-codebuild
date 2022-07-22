@@ -36,6 +36,7 @@ jobs:
   planning:
     name: Executing AWS CodeBuild Job
     runs-on: ubuntu-latest
+    needs: [ build ]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
