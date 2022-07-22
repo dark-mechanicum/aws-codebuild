@@ -30,11 +30,6 @@ jest.mock('@actions/core', () => ({
   error: mocks.actionsCoreError,
   setFailed: mocks.actionsCoreSetFailed,
   setOutput: mocks.actionsCoreSetOutput,
-  summary: {
-    addHeading: jest.fn(),
-    addBreak: jest.fn(),
-    write: jest.fn(),
-  },
 }));
 
 jest.mock('../../../src/logger', () => ({
@@ -49,8 +44,10 @@ import { StartBuildOutput, BatchGetBuildsOutput, StopBuildOutput } from 'aws-sdk
 
 describe('CodeBuildJob class functionality', () => {
   const createAWSResponse = (resolves: unknown) => ({ promise: () => Promise.resolve(resolves) });
+  const arn = 'arn:aws:codebuild:us-east-1:972995211738:build/testing-codebuild-logs:d585fe96-caa5-4a64-a7e1-01dcf612bffc';
 
   beforeAll(() => {
+    process.env['GITHUB_STEP_SUMMARY'] = '/dev/null';
     jest.useFakeTimers();
   });
 
@@ -79,10 +76,10 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
     expect(loggerStart).not.toBeCalled();
@@ -119,10 +116,10 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
     expect(loggerStart).not.toBeCalled();
@@ -159,10 +156,10 @@ describe('CodeBuildJob class functionality', () => {
     stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
 
     batchGetBuilds
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
-    .mockReturnValueOnce(createAWSResponse({ builds: [ { currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { arn, currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
     expect(loggerStart).not.toBeCalled();
