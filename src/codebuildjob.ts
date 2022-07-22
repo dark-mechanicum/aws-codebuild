@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
+import { writeFileSync } from 'fs';
 import { Logger } from './logger';
 import { debug } from './utils';
 import {
@@ -129,13 +130,13 @@ class CodeBuildJob {
         core.setOutput('initiator', build.initiator);
         core.setOutput('buildStatus', build.buildStatus);
 
-        this.generateSummary(build);
+        await this.generateSummary(build);
       }
     }
 
     if (currentPhase !== this.currentPhase) {
       this.currentPhase = currentPhase as BuildPhaseType;
-      core.notice(`Build phase was changed to the "${this.currentPhase}"`);
+      core.info(`Build phase was changed to the "${this.currentPhase}"`);
     }
 
     if (build.buildStatus === 'IN_PROGRESS') {
@@ -151,9 +152,16 @@ class CodeBuildJob {
    * @protected
    */
   protected async generateSummary(build: Build): Promise<void> {
-    core.summary.addHeading(`AWS CodeBuild build ${build.id} summary`);
-    core.summary.addBreak();
-    await core.summary.write();
+    const [ ,,,region,accountID ] = (build.arn as string).split(':');
+    const projectName = build.logs as string;
+
+    const summary = `
+      # AWS CodeBuild ${build.id}
+      ---
+      [AWS CodeBuild Job](https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${encodeURIComponent(projectName)}/build/${encodeURIComponent(build.id as string)}/?region=${region}) | 
+    `;
+
+    await writeFileSync(process.env['GITHUB_STEP_SUMMARY'] as string, summary);
   }
 }
 
