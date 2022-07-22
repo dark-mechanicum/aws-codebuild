@@ -1,5 +1,5 @@
 name: 'dark-mechanicum/aws-codebuild'
-author: 'Andrei  Kazakou <a.v.kazakou@gmail.com>'
+author: 'Andrei Kazakou <a.v.kazakou@gmail.com>'
 description: 'GitHub Action to execute AWS CodeBuild jobs'
 branding:
   icon: 'upload-cloud'
@@ -11,3 +11,16 @@ inputs:
   projectName:
     description: 'The name of the CodeBuild build project to start running a build'
     required: true
+outputs:
+  id:
+    description: 'The unique ID for the build'
+  success:
+    description: 'Flag that marks is current AWS CodeBuild job was finished successfully'
+  buildNumber:
+    description: 'The number of the build. For each project, the buildNumber of its first build is 1. The buildNumber of each subsequent build is incremented by 1. If a build is deleted, the buildNumber of other builds does not change'
+  timeoutInMinutes:
+    description: 'How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed. The default is 60 minutes'
+  initiator:
+    description: 'The AWS entity that started the build'
+  buildStatus:
+    description: 'The final status of the build. Valid values include: FAILED, FAULT, IN_PROGRESS, STOPPED, SUCCEEDED, TIMED_OUT'
