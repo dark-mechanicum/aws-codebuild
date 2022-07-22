@@ -1,11 +1,11 @@
-const mocks = {
+const utilsMocks = {
   actionsCoreDebug: jest.fn().mockName('Mock: "@actions/core".debug()'),
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
 };
 
 jest.mock('@actions/core', () => ({
-  debug: mocks.actionsCoreDebug,
-  error: mocks.actionsCoreError,
+  debug: utilsMocks.actionsCoreDebug,
+  error: utilsMocks.actionsCoreError,
 }));
 
 describe('Utils functionality testing', () => {
@@ -14,7 +14,7 @@ describe('Utils functionality testing', () => {
     const stringifyMock = jest.spyOn(JSON, 'stringify').mockImplementation(() => { throw new Error('Test error'); });
 
     const { debug } = jest.requireActual('../../../src/utils.ts');
-    const { actionsCoreDebug, actionsCoreError } = mocks;
+    const { actionsCoreDebug, actionsCoreError } = utilsMocks;
 
     expect(() => debug('Test')).not.toThrow();
     expect(stringifyMock).toBeCalledTimes(1);
