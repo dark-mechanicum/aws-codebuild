@@ -5,6 +5,10 @@ const mocks = {
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
   actionsCoreSetOutput: jest.fn().mockName('Mock: "@actions/core".setOutput()'),
+  actionsCoreDebug: jest.fn().mockName('Mock: "@actions/core".debug()'),
+  actionsCoreNotice: jest.fn().mockName('Mock: "@actions/core".notice()'),
+  actionsCoreWarning: jest.fn().mockName('Mock: "@actions/core".warning()'),
+  actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
   loggerStart: jest.fn().mockName('Mock: "src/logger".Logger.start()'),
   loggerStop: jest.fn().mockName('Mock: "src/logger".Logger.stop()'),
 };
@@ -19,6 +23,10 @@ jest.mock('aws-sdk', () => ({
 
 jest.mock('@actions/core', () => ({
   info: mocks.actionsCoreInfo,
+  debug: mocks.actionsCoreDebug,
+  notice: mocks.actionsCoreNotice,
+  warning: mocks.actionsCoreWarning,
+  error: mocks.actionsCoreError,
   setFailed: mocks.actionsCoreSetFailed,
   setOutput: mocks.actionsCoreSetOutput,
 }));

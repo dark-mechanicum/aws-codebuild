@@ -3,6 +3,9 @@ import { AWSError } from 'aws-sdk';
 const mocks = {
   getLogEvents: jest.fn().mockName('Mock: "aws-sdk".CloudWatchLogs.prototype.getLogEvents()'),
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
+  actionsCoreDebug: jest.fn().mockName('Mock: "@actions/core".debug()'),
+  actionsCoreNotice: jest.fn().mockName('Mock: "@actions/core".notice()'),
+  actionsCoreWarning: jest.fn().mockName('Mock: "@actions/core".warning()'),
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
 }
 
@@ -14,6 +17,9 @@ jest.mock("aws-sdk", () => ({
 
 jest.mock("@actions/core", () => ({
   info: mocks.actionsCoreInfo,
+  debug: mocks.actionsCoreDebug,
+  notice: mocks.actionsCoreNotice,
+  warning: mocks.actionsCoreWarning,
   error: mocks.actionsCoreError,
 }));
 

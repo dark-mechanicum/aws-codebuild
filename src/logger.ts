@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import { CloudWatchLogs, AWSError } from 'aws-sdk';
 import { GetLogEventsRequest, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
+import { debug } from './utils';
 
 /**
  * CloudWatchLogs logs stream connector
@@ -53,6 +54,8 @@ class CloudWatchLogger {
    * @param { logGroupName: string, logStreamName: string } params
    */
   constructor(params: { logGroupName: string, logStreamName: string }) {
+    debug('[CloudWatchLogger] Created new CloudWatchLogger logger instance with parameters:', params);
+
     this.params = params;
     this.getEvents = this.getEvents.bind(this);
     this.startListen = this.startListen.bind(this);
@@ -66,6 +69,7 @@ class CloudWatchLogger {
     await this.getEvents();
 
     if (!this.isStopping) {
+      debug('[CloudWatchLogger] Scheduling next call to the CloudWatchLogs.getLogEvents() API');
       this.timeout = setTimeout(this.startListen, this.timeoutDelay);
     }
   }
@@ -78,6 +82,7 @@ class CloudWatchLogger {
     this.isStopping = true;
 
     if (force) {
+      debug('[CloudWatchLogger] Canceling next calls to the CloudWatchLogs.getLogEvents() API');
       clearTimeout(this.timeout);
     }
   }
@@ -88,6 +93,8 @@ class CloudWatchLogger {
    * @protected
    */
   protected async getEvents(req?: GetLogEventsRequest) {
+    debug('[CloudWatchLogger] Executing CloudWatchLogger.getEvents() method with parameters:', req || 'Without parameters');
+
     // composing request to the CloudWatch Logs API
     const request: GetLogEventsRequest = {
       ...(req || this.params),
@@ -107,8 +114,11 @@ class CloudWatchLogger {
 
     // executing request to the CloudWatch Logs API
     try {
-      const { events, nextForwardToken: nextToken } = await this.client.getLogEvents(request).promise();
+      debug('[CloudWatchLogger] Doing request to the CloudWatchLogs.getLogEvents() with parameters:', request);
+      const response = await this.client.getLogEvents(request).promise();
+      debug('[CloudWatchLogger] Received response from CloudWatchLogs.getLogEvents():', response);
 
+      const { events, nextForwardToken: nextToken } = response;
       if (events && events.length > 0) {
         // reporting about new messages into logs stream
         events.forEach(e => core.info((e.message as string).trimRight()));
@@ -128,6 +138,7 @@ class CloudWatchLogger {
 
       // in case if we do not have access to read logs, no make sense listen it again
       if (code === 'AccessDeniedException') {
+        debug('[CloudWatchLogger] Received error AccessDeniedException in response from CloudWatchLogs.getLogEvents():', message);
         this.stopListen(true);
       }
 
@@ -159,8 +170,11 @@ class Logger {
    * @param {string} params.logStreamName - CloudWatch Stream name in provided CloudWatch Logs group name
    */
   constructor(protected readonly params: { type: string, logGroupName: string, logStreamName: string }) {
+    debug('[Logger] Creating a new Logger wrapper instance with parameters:', params);
+
     const { type, logGroupName, logStreamName } = params;
     if (type === 'cloudwatch') {
+      debug('[Logger] Creating new CloudWatchLogger instance with parameters:', params);
       this.logger = new CloudWatchLogger({ logGroupName, logStreamName });
     } else {
       throw new Error(`No found CloudWatch config for listening`);
@@ -172,6 +186,7 @@ class Logger {
    */
   public start() {
     if (!this.isStarted) {
+      debug('[Logger] Starting listening a new messages from AWS CodeBuild job output');
       this.isStarted = true;
       this.logger.startListen().catch(e => core.error(e as Error));
 
@@ -190,6 +205,7 @@ class Logger {
    * @param {boolean=} force - Is that stop signal should be processed immediately
    */
   public stop(force?: boolean) {
+    debug('[Logger] Triggered stopping listening of logs');
     this.logger.stopListen(force);
   }
 }
