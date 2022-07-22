@@ -9,6 +9,7 @@ const mocks = {
   actionsCoreNotice: jest.fn().mockName('Mock: "@actions/core".notice()'),
   actionsCoreWarning: jest.fn().mockName('Mock: "@actions/core".warning()'),
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
+  actionsCoreExportVariable: jest.fn().mockName('Mock: "@actions/core".exportVariable()'),
   loggerStart: jest.fn().mockName('Mock: "src/logger".Logger.start()'),
   loggerStop: jest.fn().mockName('Mock: "src/logger".Logger.stop()'),
 };
@@ -29,6 +30,7 @@ jest.mock('@actions/core', () => ({
   error: mocks.actionsCoreError,
   setFailed: mocks.actionsCoreSetFailed,
   setOutput: mocks.actionsCoreSetOutput,
+  exportVariable: mocks.actionsCoreExportVariable,
 }));
 
 jest.mock('../../../src/logger', () => ({
