@@ -128,6 +128,8 @@ class CodeBuildJob {
         core.setOutput('timeoutInMinutes', build.timeoutInMinutes);
         core.setOutput('initiator', build.initiator);
         core.setOutput('buildStatus', build.buildStatus);
+
+        this.generateSummary(build);
       }
     }
 
@@ -140,6 +142,16 @@ class CodeBuildJob {
       debug('[CodeBuildJob] Scheduling next request to the CodeBuild.batchGetBuilds() API');
       this.timeout = setTimeout(this.wait, 5000);
     }
+  }
+
+  /**
+   * Generating summary about build steps
+   * @param {build} build - Final build state of AWS CodeBuild job
+   * @protected
+   */
+  protected generateSummary(build: Build): void {
+    core.summary.addHeading(`AWS CodeBuild build ${build.id} summary`);
+    core.summary.addBreak();
   }
 }
 
