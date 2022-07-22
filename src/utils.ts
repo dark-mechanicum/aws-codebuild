@@ -28,8 +28,6 @@ function debug(message: string, data?: unknown) {
  * @return {string}
  */
 function convertMsToTime(milliseconds: number): string {
-  const padTo2Digits = (num: number) => num.toString().padStart(2, '0');
-
   let seconds = Math.floor(milliseconds / 1000);
   let minutes = Math.floor(seconds / 60);
   let hours = Math.floor(minutes / 60);
@@ -39,7 +37,15 @@ function convertMsToTime(milliseconds: number): string {
 
   hours = hours % 24;
 
-  return `${padTo2Digits(hours)}h ${padTo2Digits(minutes)}m ${padTo2Digits(seconds)}s`;
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${seconds}s`;
 }
 
 export {

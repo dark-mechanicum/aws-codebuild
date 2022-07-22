@@ -191,7 +191,7 @@ class CodeBuildJob {
     const table: SummaryTableRow[] = [[
       {data: 'Phase Name', header: true},
       {data: 'Status', header: true},
-      {data: 'Execution Time', header: true},
+      {data: 'Total duration', header: true},
     ]];
 
     const { phases } = build as { phases: BuildPhases };

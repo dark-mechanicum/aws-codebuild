@@ -61,8 +61,10 @@ describe('CodeBuildJob class functionality', () => {
     startTime: new Date(),
     endTime: new Date(),
     phases: [
-      { phaseType: 'phaseType1', phaseStatus: 'phaseStatus1', durationInSeconds: 66 },
-      { phaseType: 'phaseType2', phaseStatus: 'phaseStatus2' },
+      { phaseType: 'phaseType1', phaseStatus: 'phaseStatus1', durationInSeconds: 7200 },
+      { phaseType: 'phaseType2', phaseStatus: 'phaseStatus2', durationInSeconds: 78 },
+      { phaseType: 'phaseType3', phaseStatus: 'phaseStatus3', durationInSeconds: 15 },
+      { phaseType: 'phaseType4', phaseStatus: 'phaseStatus4' },
     ]
   };
 
