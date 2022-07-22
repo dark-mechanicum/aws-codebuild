@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
-import { Logger } from './logger';
 import { debug, convertMsToTime } from './utils';
+import { Logger } from './logger';
+import { SummaryTableRow } from '@actions/core/lib/summary';
 import {
   BatchGetBuildsOutput,
   BuildPhaseType,
@@ -10,6 +11,7 @@ import {
   StartBuildInput,
   Build,
 } from 'aws-sdk/clients/codebuild';
+import { BuildPhase, BuildPhases } from 'aws-sdk/clients/codebuild';
 
 class CodeBuildJob {
   protected params: StartBuildInput;
@@ -172,6 +174,23 @@ class CodeBuildJob {
 
     const { startTime, endTime } = build as { startTime: Date, endTime: Date };
     core.summary.addRaw(`Total execution time: ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
+
+    const table: SummaryTableRow[] = [[
+      {data: 'Phase Name', header: true},
+      {data: 'Status', header: true},
+      {data: 'Execution Time', header: true},
+    ]];
+
+    const { phases } = build as { phases: BuildPhases };
+    phases.forEach((phase: BuildPhase) => {
+      table.push([
+        { data: phase.phaseType as string },
+        { data: phase.phaseStatus as string },
+        { data: convertMsToTime(Number(phase.durationInSeconds) * 1000) },
+      ]);
+    })
+
+    core.summary.addTable(table);
 
     await core.summary.write();
   }
