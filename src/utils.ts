@@ -22,6 +22,33 @@ function debug(message: string, data?: unknown) {
   }
 }
 
+/**
+ * Converting milliseconds to the "HH:MM:SS" format
+ * @param {number} milliseconds
+ * @return {string}
+ */
+function convertMsToTime(milliseconds: number): string {
+  let seconds = Math.floor(milliseconds / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+
+  seconds = seconds % 60;
+  minutes = minutes % 60;
+
+  hours = hours % 24;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+
+  return `${seconds}s`;
+}
+
 export {
+  convertMsToTime,
   debug,
 };

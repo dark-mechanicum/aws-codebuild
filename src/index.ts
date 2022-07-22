@@ -10,8 +10,8 @@ const config = nconf.env({
 });
 
 const job = new CodeBuildJob({
-  ...config.get('CODEBUILD'),
   projectName: core.getInput('projectName'),
+  ...config.get('CODEBUILD'),
 });
 
 job.startBuild().catch(error => core.setFailed(error as Error));

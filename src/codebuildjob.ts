@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
+import { debug, convertMsToTime } from './utils';
 import { Logger } from './logger';
-import { debug } from './utils';
+import { SummaryTableRow } from '@actions/core/lib/summary';
 import {
   BatchGetBuildsOutput,
   BuildPhaseType,
@@ -10,6 +11,7 @@ import {
   StartBuildInput,
   Build,
 } from 'aws-sdk/clients/codebuild';
+import { BuildPhase, BuildPhases } from 'aws-sdk/clients/codebuild';
 
 class CodeBuildJob {
   protected params: StartBuildInput;
@@ -128,18 +130,83 @@ class CodeBuildJob {
         core.setOutput('timeoutInMinutes', build.timeoutInMinutes);
         core.setOutput('initiator', build.initiator);
         core.setOutput('buildStatus', build.buildStatus);
+
+        await this.generateSummary(build);
       }
     }
 
     if (currentPhase !== this.currentPhase) {
       this.currentPhase = currentPhase as BuildPhaseType;
-      core.notice(`Build phase was changed to the "${this.currentPhase}"`);
+      core.info(`Build phase was changed to the "${this.currentPhase}"`);
     }
 
     if (build.buildStatus === 'IN_PROGRESS') {
       debug('[CodeBuildJob] Scheduling next request to the CodeBuild.batchGetBuilds() API');
       this.timeout = setTimeout(this.wait, 5000);
     }
+  }
+
+  /**
+   * Generating summary about build steps
+   * @param {build} build - Final build state of AWS CodeBuild job
+   * @see https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
+   * @protected
+   */
+  protected async generateSummary(build: Build): Promise<void> {
+    core.summary.addHeading(`AWS CodeBuild ${build.id}`);
+
+    const [ ,,,region,accountID ] = (build.arn as string).split(':');
+    const projectName = build.projectName as string;
+
+    core.summary.addLink(`AWS CodeBuild Job`, `https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${projectName}/build/${encodeURIComponent(build.id as string)}/?region=${region}`);
+
+    const { cloudWatchLogs } = build.logs as LogsLocation;
+    if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
+      const logGroupName = (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string;
+      const logStreamName = (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string;
+
+      core.summary.addRaw(' | ')
+      core.summary.addLink(`AWS CloudWatch Logs`, `https://console.aws.amazon.com/cloudwatch/home?region=${region}#logEvent:group=${logGroupName};stream=${logStreamName}`);
+    }
+
+    core.summary.addBreak();
+    core.summary.addBreak();
+
+    core.summary.addRaw(`<strong>Job run ID</strong>: ${build.id}`, true);
+    core.summary.addBreak();
+    core.summary.addRaw(`<strong>Project name</strong>: ${build.projectName}`, true);
+    core.summary.addBreak();
+    core.summary.addRaw(`<strong>Initiator</strong>: ${build.initiator}`, true);
+    core.summary.addBreak();
+
+    const { startTime, endTime } = build as { startTime: Date, endTime: Date };
+    core.summary.addRaw(`<strong>Total execution time:</strong> ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
+    core.summary.addBreak();
+    core.summary.addBreak();
+
+    core.summary.addRaw('<strong>Job startup configuration:</strong>', true);
+    core.summary.addBreak();
+    core.summary.addCodeBlock(JSON.stringify(this.params, null, 2), 'json');
+
+    const table: SummaryTableRow[] = [[
+      {data: 'Phase Name', header: true},
+      {data: 'Status', header: true},
+      {data: 'Total duration', header: true},
+    ]];
+
+    const { phases } = build as { phases: BuildPhases };
+    phases.forEach((phase: BuildPhase) => {
+      table.push([
+        { data: phase.phaseType as string },
+        { data: phase.phaseStatus as string },
+        { data: convertMsToTime(Number(phase.durationInSeconds || 0) * 1000) },
+      ]);
+    })
+
+    core.summary.addBreak();
+    core.summary.addTable(table);
+
+    await core.summary.write();
   }
 }
 
