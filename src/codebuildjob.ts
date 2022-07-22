@@ -147,11 +147,16 @@ class CodeBuildJob {
   /**
    * Generating summary about build steps
    * @param {build} build - Final build state of AWS CodeBuild job
+   * @see https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
    * @protected
    */
   protected generateSummary(build: Build): void {
-    core.summary.addHeading(`AWS CodeBuild build ${build.id} summary`);
-    core.summary.addBreak();
+    const summary: string[] = [];
+
+    summary.push(`AWS CodeBuild build ${build.id} summary`);
+    summary.push('---');
+
+    core.exportVariable('GITHUB_STEP_SUMMARY', summary.join("\n"));
   }
 }
 
