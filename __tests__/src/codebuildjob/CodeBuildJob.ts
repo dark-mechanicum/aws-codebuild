@@ -38,6 +38,7 @@ jest.mock('@actions/core', () => ({
     addRaw: jest.fn(),
     addEOL: jest.fn(),
     addTable: jest.fn(),
+    addCodeBlock: jest.fn(),
   },
 }));
 

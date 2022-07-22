@@ -182,6 +182,12 @@ class CodeBuildJob {
     const { startTime, endTime } = build as { startTime: Date, endTime: Date };
     core.summary.addRaw(`<strong>Total execution time:</strong> ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
     core.summary.addBreak();
+    core.summary.addBreak();
+
+    core.summary.addRaw('Job startup configuration:', true);
+    core.summary.addBreak();
+    core.summary.addCodeBlock(JSON.stringify(this.params, null, 4), 'json');
+    core.summary.addBreak();
 
     const table: SummaryTableRow[] = [[
       {data: 'Phase Name', header: true},
