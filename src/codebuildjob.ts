@@ -1,6 +1,5 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
-import { writeFileSync } from 'fs';
 import { Logger } from './logger';
 import { debug } from './utils';
 import {
@@ -130,7 +129,7 @@ class CodeBuildJob {
         core.setOutput('initiator', build.initiator);
         core.setOutput('buildStatus', build.buildStatus);
 
-        await this.generateSummary(build);
+        this.generateSummary(build);
       }
     }
 
@@ -152,16 +151,23 @@ class CodeBuildJob {
    * @protected
    */
   protected async generateSummary(build: Build): Promise<void> {
+    core.summary.addHeading(`AWS CodeBuild ${build.id}`);
+    core.summary.addBreak();
+
     const [ ,,,region,accountID ] = (build.arn as string).split(':');
-    const projectName = build.logs as string;
+    const projectName = build.projectName as string;
 
-    const summary = `
-      # AWS CodeBuild ${build.id}
-      ---
-      [AWS CodeBuild Job](https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${encodeURIComponent(projectName)}/build/${encodeURIComponent(build.id as string)}/?region=${region}) | 
-    `;
+    core.summary.addLink(`AWS CodeBuild Job`, `https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${projectName}/build/${encodeURIComponent(build.id as string)}/?region=${region}`);
 
-    await writeFileSync(process.env['GITHUB_STEP_SUMMARY'] as string, summary);
+    const { cloudWatchLogs } = build.logs as LogsLocation;
+    if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
+      const logGroupName = (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string;
+      const logStreamName = (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string;
+
+      core.summary.addLink(`AWS CloudWatch Logs`, `https://console.aws.amazon.com/cloudwatch/home?region=${region}#logEvent:group=${logGroupName};stream=${logStreamName}`);
+    }
+
+    await core.summary.write();
   }
 }
 
