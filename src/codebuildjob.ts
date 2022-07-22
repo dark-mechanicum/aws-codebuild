@@ -131,7 +131,7 @@ class CodeBuildJob {
         core.setOutput('initiator', build.initiator);
         core.setOutput('buildStatus', build.buildStatus);
 
-        this.generateSummary(build);
+        await this.generateSummary(build);
       }
     }
 
@@ -184,10 +184,9 @@ class CodeBuildJob {
     core.summary.addBreak();
     core.summary.addBreak();
 
-    core.summary.addRaw('Job startup configuration:', true);
+    core.summary.addRaw('<strong>Job startup configuration:</strong>', true);
     core.summary.addBreak();
-    core.summary.addCodeBlock(JSON.stringify(this.params, null, 4), 'json');
-    core.summary.addBreak();
+    core.summary.addCodeBlock(JSON.stringify(this.params, null, 2), 'json');
 
     const table: SummaryTableRow[] = [[
       {data: 'Phase Name', header: true},
@@ -204,7 +203,6 @@ class CodeBuildJob {
       ]);
     })
 
-    core.summary.addBreak();
     core.summary.addBreak();
     core.summary.addTable(table);
 
