@@ -35,6 +35,8 @@ jest.mock('@actions/core', () => ({
     addHeading: jest.fn(),
     addBreak: jest.fn(),
     write: jest.fn(),
+    addRaw: jest.fn(),
+    addEOL: jest.fn(),
   },
 }));
 
@@ -54,6 +56,8 @@ describe('CodeBuildJob class functionality', () => {
     id: 'test:testStreamID',
     logs: { cloudWatchLogs: { status: 'ENABLED' } },
     arn: 'arn:aws:codebuild:us-east-1:972995211738:build/testing-codebuild-logs:d585fe96-caa5-4a64-a7e1-01dcf612bffc',
+    startTime: new Date(),
+    endTime: new Date(),
   };
 
   beforeAll(() => {

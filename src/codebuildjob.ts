@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { CodeBuild } from 'aws-sdk';
 import { Logger } from './logger';
-import { debug } from './utils';
+import { debug, convertMsToTime } from './utils';
 import {
   BatchGetBuildsOutput,
   BuildPhaseType,
@@ -164,8 +164,14 @@ class CodeBuildJob {
       const logGroupName = (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string;
       const logStreamName = (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string;
 
+      core.summary.addRaw(' | ')
       core.summary.addLink(`AWS CloudWatch Logs`, `https://console.aws.amazon.com/cloudwatch/home?region=${region}#logEvent:group=${logGroupName};stream=${logStreamName}`);
     }
+
+    core.summary.addBreak();
+
+    const { startTime, endTime } = build as { startTime: Date, endTime: Date };
+    core.summary.addRaw(`Total execution time: ${convertMsToTime(endTime.getTime() - startTime.getTime())}`, true);
 
     await core.summary.write();
   }

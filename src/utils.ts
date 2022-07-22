@@ -22,6 +22,27 @@ function debug(message: string, data?: unknown) {
   }
 }
 
+/**
+ * Converting milliseconds to the "HH:MM:SS" format
+ * @param {number} milliseconds
+ * @return {string}
+ */
+function convertMsToTime(milliseconds: number): string {
+  const padTo2Digits = (num: number) => num.toString().padStart(2, '0');
+
+  let seconds = Math.floor(milliseconds / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+
+  seconds = seconds % 60;
+  minutes = minutes % 60;
+
+  hours = hours % 24;
+
+  return `${padTo2Digits(hours)}h ${padTo2Digits(minutes)}m ${padTo2Digits(seconds)}s`;
+}
+
 export {
+  convertMsToTime,
   debug,
 };
