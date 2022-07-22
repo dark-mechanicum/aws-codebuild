@@ -2,12 +2,18 @@ const mocks = {
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
   actionsCoreStartGroup: jest.fn().mockName('Mock: "@actions/core".startGroup()'),
   actionsCoreEndGroup: jest.fn().mockName('Mock: "@actions/core".endGroup()'),
+  actionsCoreDebug: jest.fn().mockName('Mock: "@actions/core".debug()'),
+  actionsCoreNotice: jest.fn().mockName('Mock: "@actions/core".notice()'),
+  actionsCoreWarning: jest.fn().mockName('Mock: "@actions/core".warning()'),
 }
 
 jest.mock("@actions/core", () => ({
   error: mocks.actionsCoreError,
   startGroup: mocks.actionsCoreStartGroup,
   endGroup: mocks.actionsCoreEndGroup,
+  debug: mocks.actionsCoreDebug,
+  notice: mocks.actionsCoreNotice,
+  warning: mocks.actionsCoreWarning,
 }));
 
 import { Logger } from '../../../src/logger';
