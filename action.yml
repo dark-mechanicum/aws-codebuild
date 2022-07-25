@@ -27,6 +27,10 @@ inputs:
     description: 'Display AWS CodeBuild logs output in the GitHub Actions logs output'
     required: false
     default: 'true'
+  buildspec:
+    description: 'Custom buildSpec job overrides in the valid JSON format'
+    required: false
+    default: '{}'
 outputs:
   id:
     description: 'The unique ID for the build'

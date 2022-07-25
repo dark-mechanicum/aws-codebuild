@@ -25,7 +25,7 @@ describe('Testing setFailed functionality', () => {
   it('should set job failed on startBuild() error', async () => {
     const { startBuild, actionsCoreGetInput, actionsCoreSetFailed } = setFailedMocks;
     startBuild.mockRejectedValue(new Error('test'));
-    actionsCoreGetInput.mockReturnValue('test');
+    actionsCoreGetInput.mockImplementation((val: string): string => val === 'buildspec' ? '{}' : 'test');
 
     jest.requireMock('../../../src/index');
     await new Promise(process.nextTick);

@@ -11,6 +11,7 @@ const config = nconf.env({
 
 const job = new CodeBuildJob({
   projectName: core.getInput('projectName'),
+  ...JSON.parse(core.getInput('buildspec')),
   ...config.get('CODEBUILD'),
 }, {
   buildStatusInterval: Number(core.getInput('buildStatusInterval') || '5000'),

@@ -59,6 +59,7 @@ describe('CodeBuildJob class functionality', () => {
         case 'projectName': return 'test';
         case 'buildStatusInterval': return '5000';
         case 'logsUpdateInterval': return '5000';
+        case 'buildspec': return '{}';
         default: return '';
       }
     });
@@ -87,7 +88,7 @@ describe('CodeBuildJob class functionality', () => {
   it('should cancel job on SIGINT signal', async () => {
     const { startBuild, actionsCoreGetInput, cancelBuild } = mocks;
     startBuild.mockReturnValue({ catch: jest.fn() });
-    actionsCoreGetInput.mockReturnValue('test');
+    actionsCoreGetInput.mockImplementation((val: string): string => val === 'buildspec' ? '{}' : 'test');
     require('../../../src/index');
 
     jest.spyOn(process, 'exit').mockImplementation(jest.fn().mockName('Mock process.exit()') as never);
@@ -98,7 +99,7 @@ describe('CodeBuildJob class functionality', () => {
   it('should try to cancel job on SIGINT signal with exception', async () => {
     const { startBuild, actionsCoreGetInput, cancelBuild, actionsCoreError } = mocks;
     startBuild.mockReturnValue({ catch: jest.fn() });
-    actionsCoreGetInput.mockReturnValue('test');
+    actionsCoreGetInput.mockImplementation((val: string): string => val === 'buildspec' ? '{}' : 'test');
     const error = new Error('test error');
     cancelBuild.mockImplementation(() => {throw error;});
     jest.spyOn(process, 'exit').mockImplementation(jest.fn().mockName('Mock process.exit()') as never);
@@ -123,6 +124,7 @@ describe('CodeBuildJob class functionality', () => {
     actionsCoreGetInput.mockImplementation((val: string): string => {
       switch (val) {
         case 'projectName': return 'test';
+        case 'buildspec': return '{}';
         default: return '';
       }
     });

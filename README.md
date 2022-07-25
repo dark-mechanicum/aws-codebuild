@@ -43,13 +43,24 @@ In case if you have enabled AWS CloudWatch logs for AWS CodeBuild job execution,
     logsUpdateInterval: 5000
     waitToBuildEnd: true
     displayBuildLogs: true
+    buildspec: '{
+      "environmentVariablesOverride":[
+        { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+      ],
+      "logsConfigOverride": {
+        "cloudWatchLogs": {
+          "status": "ENABLED"
+        }
+      }
+    }'
 ```
 
 * `projectName` [string] [required] - The name of the CodeBuild build project to start running a build
 * `buildStatusInterval` [number] [optional] - Interval in milliseconds to control how often should be checked status of build
 * `logsUpdateInterval` [number] [optional] - Interval in milliseconds to control how often should be checked new events in logs stream
-* `waitToBuildEnd` [number] [boolean] - Wait till AWS CodeBuild job will be finished
-* `displayBuildLogs` [number] [boolean] - Display AWS CodeBuild logs output in the GitHub Actions logs output
+* `waitToBuildEnd` [boolean] [optional] - Wait till AWS CodeBuild job will be finished
+* `displayBuildLogs` [boolean] [optional] - Display AWS CodeBuild logs output in the GitHub Actions logs output
+* `buildspec` [string] [optional] - Custom parameters to override job parameters in the valid JSON format. Full list of supported paramters you can find in the [CodeBuild.startBuild()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) documentation
 
 ## AWS Credentials
 
@@ -80,8 +91,29 @@ Setting up credentials files ([AWS Documentation](https://docs.aws.amazon.com/sd
 ## Configuration
 Unfortunately, [GitHub Actions syntax](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions) do not support complex data types. I've made a decision to use environment variables for building configuration object overrides. It means, you can extend configuration for your AWS CodeBuild Job request with using of environment variables.
 
-For overriding AWS CodeBuild Job request parameters, you need to define environment variable `CODEBUILD__environmentVariablesOverride` and assign complex and valid JSON value to that variable.
+Most elegant way to implement overriding of [CodeBuild.startBuild()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) is using `buildspec` input. The `buildspec` input should contain valid JSON object with values that you are planning to override.
 
+```yaml
+- name: Executing AWS CodeBuild task
+  uses: dark-mechanicum/aws-codebuild@v1
+  with:
+    projectName: '<your-aws-codebuild-job-name-here>'
+    buildspec: '{
+      "environmentVariablesOverride":[
+        { "name":"testEnvVar1", "value":"Testing environment variable", "type": "PLAINTEXT" },
+        { "name":"testEnvVar2", "value":"${{ secrets.SOME_SECRET }}", "type": "PLAINTEXT" },
+      ],
+      "logsConfigOverride": {
+        "cloudWatchLogs": {
+          "status": "ENABLED"
+        }
+      }
+    }'
+```
+
+---
+
+For overriding through environment variables, you need to define environment variable `CODEBUILD__environmentVariablesOverride` and assign complex and valid JSON value to that variable.
 
 To example, if you want to override `environmentVariablesOverride` property (it requires array of objects), you need define `CODEBUILD__environmentVariablesOverride` and assign to it required JSON value 
 
