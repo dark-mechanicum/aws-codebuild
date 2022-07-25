@@ -12,6 +12,11 @@ const config = nconf.env({
 const job = new CodeBuildJob({
   projectName: core.getInput('projectName'),
   ...config.get('CODEBUILD'),
+}, {
+  buildStatusInterval: Number(core.getInput('buildStatusInterval') || '5000'),
+  logsUpdateInterval: Number(core.getInput('logsUpdateInterval') || '5000'),
+  waitToBuildEnd: !!core.getBooleanInput('waitToBuildEnd'),
+  displayBuildLogs: !!core.getBooleanInput('displayBuildLogs'),
 });
 
 job.startBuild().catch(error => core.setFailed(error as Error));

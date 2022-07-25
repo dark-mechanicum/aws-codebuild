@@ -31,13 +31,13 @@ describe('Decorator Logger functionality', () => {
   });
 
   beforeEach(() => {
-    logger = new Logger({ type: 'cloudwatch', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' });
+    logger = new Logger({ type: 'cloudwatch', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
     logger['logger']['startListen'] = jest.fn().mockReturnValue(Promise.resolve());
     logger['logger']['stopListen'] = jest.fn();
   });
 
   it('should trigger error for unknown logger type', async () => {
-    expect(() => new Logger({ type: 'fake', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' })).toThrowError('No found CloudWatch config for listening');
+    expect(() => new Logger({ type: 'fake', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 })).toThrowError('No found CloudWatch config for listening');
   });
 
   it('should exit with error on exception in startLogger', async () => {

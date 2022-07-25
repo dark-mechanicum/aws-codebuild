@@ -11,6 +11,22 @@ inputs:
   projectName:
     description: 'The name of the CodeBuild build project to start running a build'
     required: true
+  buildStatusInterval:
+    description: 'Interval in milliseconds to control how often should be checked status of build'
+    required: false
+    default: '5000'
+  logsUpdateInterval:
+    description: 'Interval in milliseconds to control how often should be checked new events in logs stream'
+    required: false
+    default: '5000'
+  waitToBuildEnd:
+    description: 'Wait till AWS CodeBuild job will be finished'
+    required: false
+    default: 'true'
+  displayBuildLogs:
+    description: 'Display AWS CodeBuild logs output in the GitHub Actions logs output'
+    required: false
+    default: 'true'
 outputs:
   id:
     description: 'The unique ID for the build'

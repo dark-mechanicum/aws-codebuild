@@ -52,11 +52,15 @@ class CloudWatchLogger {
   /**
    * Create a new instance of CloudWatchLogs stream logger listener
    * @param { logGroupName: string, logStreamName: string } params
+   * @param { updateInterval: number } options
+   * @param {string} options.updateInterval - Interval in milliseconds to track logs data updates
    */
-  constructor(params: { logGroupName: string, logStreamName: string }) {
+  constructor(params: { logGroupName: string, logStreamName: string }, options: { updateInterval: number }) {
     debug('[CloudWatchLogger] Created new CloudWatchLogger logger instance with parameters:', params);
 
     this.params = params;
+    this.timeoutDelay = options.updateInterval;
+
     this.getEvents = this.getEvents.bind(this);
     this.startListen = this.startListen.bind(this);
   }
@@ -165,17 +169,19 @@ class Logger {
   /**
    * Creates a new logger instance
    * @param { type: string, logGroupName: string, logStreamName: string } params
+   * @param { updateInterval: number } options
+   * @param {string} options.updateInterval - Interval in milliseconds to track logs data updates
    * @param {string} params.type - Type of connector that required to be launched
    * @param {string} params.logGroupName - CloudWatch Logs group name
    * @param {string} params.logStreamName - CloudWatch Stream name in provided CloudWatch Logs group name
    */
-  constructor(protected readonly params: { type: string, logGroupName: string, logStreamName: string }) {
+  constructor(protected readonly params: { type: string, logGroupName: string, logStreamName: string }, options: { updateInterval: number }) {
     debug('[Logger] Creating a new Logger wrapper instance with parameters:', params);
 
     const { type, logGroupName, logStreamName } = params;
     if (type === 'cloudwatch') {
       debug('[Logger] Creating new CloudWatchLogger instance with parameters:', params);
-      this.logger = new CloudWatchLogger({ logGroupName, logStreamName });
+      this.logger = new CloudWatchLogger({ logGroupName, logStreamName }, options);
     } else {
       throw new Error(`No found CloudWatch config for listening`);
     }

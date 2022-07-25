@@ -33,6 +33,24 @@ In case if AWS CodeBuild job execution will be failed, it also will fail executi
 
 In case if you have enabled AWS CloudWatch logs for AWS CodeBuild job execution, it will put AWS CloudWatch logs output in the GitHub Actions logs output.
 
+## Inputs
+```yaml
+- name: Executing AWS CodeBuild task
+  uses: dark-mechanicum/aws-codebuild@v1
+  with:
+    projectName: '<your-aws-codebuild-job-name-here>'
+    buildStatusInterval: 5000
+    logsUpdateInterval: 5000
+    waitToBuildEnd: true
+    displayBuildLogs: true
+```
+
+* `projectName` [string] [required] - The name of the CodeBuild build project to start running a build
+* `buildStatusInterval` [number] [optional] - Interval in milliseconds to control how often should be checked status of build
+* `logsUpdateInterval` [number] [optional] - Interval in milliseconds to control how often should be checked new events in logs stream
+* `waitToBuildEnd` [number] [boolean] - Wait till AWS CodeBuild job will be finished
+* `displayBuildLogs` [number] [boolean] - Display AWS CodeBuild logs output in the GitHub Actions logs output
+
 ## AWS Credentials
 
 You can use 2 ways how to put AWS access credentials to this action:
