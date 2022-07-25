@@ -1,6 +1,6 @@
 {
   "name": "@dark-mechanicum/aws-codebuild",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "GitHub Action to execute AWS CodeBuild jobs",
   "author": "Andrei Kazakou<a.v.kazakou@gmail.com>",
   "main": "dist/index.js",
