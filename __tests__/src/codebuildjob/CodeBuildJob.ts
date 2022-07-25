@@ -9,6 +9,8 @@ const mocks = {
   actionsCoreNotice: jest.fn().mockName('Mock: "@actions/core".notice()'),
   actionsCoreWarning: jest.fn().mockName('Mock: "@actions/core".warning()'),
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
+  actionsCoreGetBooleanInput: jest.fn().mockName('Mock: "@actions/core".getBooleanInput()'),
+  actionsCoreGetInput: jest.fn().mockName('Mock: "@actions/core".getInput()'),
   actionsCoreExportVariable: jest.fn().mockName('Mock: "@actions/core".exportVariable()'),
   loggerStart: jest.fn().mockName('Mock: "src/logger".Logger.start()'),
   loggerStop: jest.fn().mockName('Mock: "src/logger".Logger.stop()'),
@@ -30,6 +32,8 @@ jest.mock('@actions/core', () => ({
   error: mocks.actionsCoreError,
   setFailed: mocks.actionsCoreSetFailed,
   setOutput: mocks.actionsCoreSetOutput,
+  getInput: mocks.actionsCoreGetInput,
+  getBooleanInput: mocks.actionsCoreGetBooleanInput,
   summary: {
     addLink: jest.fn(),
     addHeading: jest.fn(),
@@ -67,6 +71,12 @@ describe('CodeBuildJob class functionality', () => {
       { phaseType: 'phaseType4', phaseStatus: 'phaseStatus4' },
     ]
   };
+  const codeBuildJobOptions = {
+    buildStatusInterval: 5000,
+    displayBuildLogs: true,
+    logsUpdateInterval: 5000,
+    waitToBuildEnd: true,
+  };
 
   beforeAll(() => {
     process.env['GITHUB_STEP_SUMMARY'] = '/dev/null';
@@ -86,7 +96,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should complete whole cycle successfully', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' });
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: buildDesc,
@@ -123,7 +133,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should complete whole cycle successfully without logs', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' });
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
@@ -163,7 +173,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should setFail GitHub Action job on failing of AWS CodeBuild job', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' });
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
@@ -204,9 +214,71 @@ describe('CodeBuildJob class functionality', () => {
     expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
+  it('should wait till build will be finished with disabled logs output', async () => {
+    const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, displayBuildLogs: false });
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: {
+        id: 'test:testStreamID',
+        logs: { cloudWatchLogs: { status: 'ENABLED' } },
+      },
+    } as StartBuildOutput));
+
+    stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
+
+    batchGetBuilds
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+    .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
+
+    await job.startBuild();
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    await job.cancelBuild();
+    expect(stopBuild).toBeCalled();
+    expect(loggerStop).not.toBeCalled();
+
+    process.emit('exit', 1);
+    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
+  });
+
+  it('should not wait build status if waitToBuildEnd=false', async () => {
+    const { startBuild, batchGetBuilds, stopBuild, loggerStart } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, waitToBuildEnd: false });
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: {
+        id: 'test:testStreamID',
+        logs: { cloudWatchLogs: { status: 'ENABLED' } },
+      },
+    } as StartBuildOutput));
+
+    stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
+
+    const startBuildPromise = job.startBuild();
+    await expect(startBuildPromise).resolves.toBeUndefined();
+    expect(loggerStart).not.toBeCalled();
+    expect(batchGetBuilds).not.toBeCalled();
+  });
+
   it('should trigger exception if codebuild job can not be started', async () => {
     const { startBuild } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' });
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
 
     startBuild.mockReturnValueOnce(createAWSResponse({} as StartBuildOutput));
 

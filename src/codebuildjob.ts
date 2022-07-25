@@ -13,18 +13,48 @@ import {
 } from 'aws-sdk/clients/codebuild';
 import { BuildPhase, BuildPhases } from 'aws-sdk/clients/codebuild';
 
+interface CodeBuildJobOptions {
+  /**
+   * Interval in milliseconds to control how often should be checked status of build.
+   * @default 5000
+   */
+  buildStatusInterval: number;
+  /**
+   * Interval in milliseconds to control how often should be checked new events in logs stream.
+   * @default 5000
+   */
+  logsUpdateInterval: number;
+  /**
+   * Wait till AWS CodeBuild job will be finished
+   * @default true
+   */
+  waitToBuildEnd: boolean;
+  /**
+   * Display AWS CodeBuild logs output in the GitHub Actions logs output
+   * @default true
+   */
+  displayBuildLogs: boolean;
+}
+
 class CodeBuildJob {
   protected params: StartBuildInput;
   protected client = new CodeBuild();
   protected build: CodeBuild.Build = {};
-  protected logger: Logger = undefined as unknown as Logger;
-  protected timeout: NodeJS.Timeout | undefined;
+  protected logger?: Logger;
+  protected timeout?: NodeJS.Timeout;
   protected currentPhase: BuildPhaseType | 'STARTING' = 'STARTING';
+  protected options: CodeBuildJobOptions = {
+    buildStatusInterval: 5000,
+    displayBuildLogs: true,
+    logsUpdateInterval: 5000,
+    waitToBuildEnd: true,
+  };
 
-  constructor(params: StartBuildInput) {
+  constructor(params: StartBuildInput, options: CodeBuildJobOptions) {
     debug('[CodeBuildJob] Created new CodeBuildJob instance with parameters:', params);
 
     this.params = params;
+    this.options = { ...this.options, ...options };
 
     this.wait = this.wait.bind(this);
   }
@@ -49,6 +79,12 @@ class CodeBuildJob {
 
     core.info(`CodeBuild project job ${build.id} was started successfully`);
 
+    // if we don't need to wait till AWS CodeBuild will be finished, skip logs registering and build status checks
+    if (!this.options.waitToBuildEnd) {
+      core.info(`The "waitToBuildEnd" input in a false state. No need to track logs and status. Stopping...`)
+      return;
+    }
+
     // initiate logger listening
     const { cloudWatchLogs } = build.logs as LogsLocation;
     if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
@@ -59,10 +95,19 @@ class CodeBuildJob {
       }
 
       debug('[CodeBuildJob] Creating CloudWatch Logger with parameters:', options);
-      this.logger = new Logger(options);
+
+      // logs will be displayed only if we have request to do it
+      if (this.options.displayBuildLogs) {
+        this.logger = new Logger(options, { updateInterval: this.options.logsUpdateInterval });
+      }
     }
 
-    if (!this.logger) {
+    // helper message to help track why logs are not displayed
+    if (!this.options.displayBuildLogs) {
+      core.info(`The displayBuildLogs input in false state. CodeBuild logs output will not be displayed`);
+    }
+
+    if (!this.logger && this.options.displayBuildLogs) {
       core.info(`Can't find logs output for AWS CodeBuild job: ${build.id}`);
     }
 
@@ -142,7 +187,7 @@ class CodeBuildJob {
 
     if (build.buildStatus === 'IN_PROGRESS') {
       debug('[CodeBuildJob] Scheduling next request to the CodeBuild.batchGetBuilds() API');
-      this.timeout = setTimeout(this.wait, 5000);
+      this.timeout = setTimeout(this.wait, this.options.buildStatusInterval);
     }
   }
 

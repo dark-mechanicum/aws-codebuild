@@ -1,6 +1,9 @@
 name: Validation
 on: [push]
 
+env:
+  AWS_REGION: us-east-1
+
 jobs:
   build:
     name: Verifying
@@ -33,22 +36,129 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
-  planning:
-    name: Executing AWS CodeBuild Job
+  simple:
+    name: Run simple scenario
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Executing AWS CodeBuild task
+        uses: ./
+        with:
+          projectName: 'testing-codebuild-logs'
+          buildspec: '{
+            "environmentVariablesOverride":[
+              { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+            ],
+            "logsConfigOverride": {
+              "cloudWatchLogs": {
+                "status": "ENABLED"
+              }
+            }
+          }'
+
+  env_var_using:
+    name: Run env var using scenario
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Executing AWS CodeBuild task
         uses: ./
         with:
           projectName: 'testing-codebuild-logs'
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
+          CODEBUILD__environmentVariablesOverride: '[
+            { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+          ]'
+
+  without_wait:
+    name: Run without waiting job scenario
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Executing AWS CodeBuild task
+        uses: ./
+        with:
+          projectName: 'testing-codebuild-logs'
+          waitToBuildEnd: false
+          CODEBUILD__environmentVariablesOverride: '[
+            { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+          ]'
+
+  without_logs:
+    name: Run without logs scenario
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Executing AWS CodeBuild task
+        uses: ./
+        with:
+          projectName: 'testing-codebuild-logs'
+          displayBuildLogs: false
+          CODEBUILD__environmentVariablesOverride: '[
+            { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+          ]'
+
+  fast:
+    name: Run fast scenario
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Executing AWS CodeBuild task
+        uses: ./
+        with:
+          projectName: 'testing-codebuild-logs'
+          buildStatusInterval: 1000
+          logsUpdateInterval: 1000
           CODEBUILD__environmentVariablesOverride: '[
             { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
           ]'

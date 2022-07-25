@@ -61,7 +61,7 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
       .mockReturnValueOnce(createAWSResponse({ events, nextForwardToken: 'blah' }))
       .mockReturnValueOnce(createAWSResponse({ events: [], nextForwardToken: 'blah' }))
 
-    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' });
+    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
 
     await expect(logger['getEvents']()).resolves.toBeUndefined();
     expect(getLogEvents).toBeCalledTimes(3);
@@ -80,7 +80,7 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     } as AWSError;
 
     getLogEvents.mockReturnValue(createAWSReject(error));
-    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' });
+    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
     const stopListenSpy = jest.spyOn(logger, 'stopListen');
 
     await expect(logger['getEvents']()).resolves.toBeUndefined();
@@ -95,7 +95,7 @@ describe('CloudWatchLogs Logger Timers', () => {
   let logger: CloudWatchLogger;
 
   beforeEach(() => {
-    logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' });
+    logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
     logger['getEvents'] = jest.fn();
     jest.useFakeTimers();
   });
