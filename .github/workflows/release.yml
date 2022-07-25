@@ -44,12 +44,19 @@ jobs:
     steps:
       - name: Executing AWS CodeBuild task
         uses: dark-mechanicum/aws-codebuild@v1
-        with:
-          projectName: 'testing-codebuild-logs'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
-          CODEBUILD__environmentVariablesOverride: '[
-            { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
-          ]'
+        with:
+          projectName: 'testing-codebuild-logs'
+          buildspec: '{
+            "environmentVariablesOverride":[
+              { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
+            ],
+            "logsConfigOverride": {
+              "cloudWatchLogs": {
+                "status": "ENABLED"
+              }
+            }
+          }'
