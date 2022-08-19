@@ -11,7 +11,7 @@
     "test": "jest --detectOpenHandles --passWithNoTests"
   },
   "dependencies": {
-    "@actions/core": "^1.9.0",
+    "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
     "aws-sdk": "^2.1185.0",
     "nconf": "^0.12.0",
