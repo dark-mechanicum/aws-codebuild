@@ -27,6 +27,10 @@ inputs:
     description: 'Display AWS CodeBuild logs output in the GitHub Actions logs output'
     required: false
     default: 'true'
+  redirectServiceURL:
+    description: 'External service that can be used for redirects. Example: "https://cloudaws.link/r/"'
+    required: false
+    default: ''
   buildspec:
     description: 'Custom buildSpec job overrides in the valid JSON format'
     required: false

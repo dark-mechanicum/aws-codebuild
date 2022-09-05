@@ -18,6 +18,7 @@ const job = new CodeBuildJob({
   logsUpdateInterval: Number(core.getInput('logsUpdateInterval') || '5000'),
   waitToBuildEnd: !!core.getBooleanInput('waitToBuildEnd'),
   displayBuildLogs: !!core.getBooleanInput('displayBuildLogs'),
+  redirectServiceURL: core.getInput('redirectServiceURL') || undefined,
 });
 
 job.startBuild().catch(error => core.setFailed(error as Error));
