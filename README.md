@@ -43,6 +43,7 @@ In case if you have enabled AWS CloudWatch logs for AWS CodeBuild job execution,
     logsUpdateInterval: 5000
     waitToBuildEnd: true
     displayBuildLogs: true
+    redirectServiceURL: 'https://cloudaws.link/r/'
     buildspec: '{
       "environmentVariablesOverride":[
         { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
@@ -60,7 +61,8 @@ In case if you have enabled AWS CloudWatch logs for AWS CodeBuild job execution,
 * `logsUpdateInterval` [number] [optional] - Interval in milliseconds to control how often should be checked new events in logs stream
 * `waitToBuildEnd` [boolean] [optional] - Wait till AWS CodeBuild job will be finished
 * `displayBuildLogs` [boolean] [optional] - Display AWS CodeBuild logs output in the GitHub Actions logs output
-* `buildspec` [string] [optional] - Custom parameters to override job parameters in the valid JSON format. Full list of supported paramters you can find in the [CodeBuild.startBuild()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) documentation
+* `redirectServiceURL` [string] [optional] - In case if that option will be enabled, in the Summary Report, all links will be replaced by the pattern `${redirectServiceURL}${base64_encoded/link}`. That can be useful when some other actions masking credentials like AWS Account ID, Region etc. It will make default generated urls unusable. You can use `https://cloudaws.link/r/` value like example of service usage
+* `buildspec` [string] [optional] - Custom parameters to override job parameters in the valid JSON format. Full list of supported parameters you can find in the [CodeBuild.startBuild()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CodeBuild.html#startBuild-property) documentation
 
 ## AWS Credentials
 
@@ -74,6 +76,8 @@ You can use 2 ways how to put AWS access credentials to this action:
 
 ### Using aws-actions/configure-aws-credentials GitHub Action
 Setting up credentials files ([AWS Documentation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html)). Simplest way to do it - use [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials) GitHub Action.
+
+Important: if you want a links working correctly in Summary report, remember that action will mask by `***` region, account number and other credentials. If you want make links working, you should assign redirect service to the `redirectServiceURL` action input.
 ```yaml
 - name: Configure AWS Credentials
   uses: aws-actions/configure-aws-credentials@v1

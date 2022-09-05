@@ -34,6 +34,11 @@ interface CodeBuildJobOptions {
    * @default true
    */
   displayBuildLogs: boolean;
+  /**
+   * URL to the service that will do a redirect for generated links
+   * @example https://cloudaws.link/r/
+   */
+  redirectServiceURL?: string;
 }
 
 class CodeBuildJob {
@@ -202,8 +207,10 @@ class CodeBuildJob {
 
     const [ ,,,region,accountID ] = (build.arn as string).split(':');
     const projectName = build.projectName as string;
+    const { redirectServiceURL } = this.options;
 
-    core.summary.addLink(`AWS CodeBuild Job`, `https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${projectName}/build/${encodeURIComponent(build.id as string)}/?region=${region}`);
+    const jobLink = `https://${region}.console.aws.amazon.com/codesuite/codebuild/${accountID}/projects/${projectName}/build/${encodeURIComponent(build.id as string)}/?region=${region}`;
+    core.summary.addLink(`AWS CodeBuild Job`, redirectServiceURL ? `${redirectServiceURL}${Buffer.from(jobLink).toString('base64url')}` : jobLink);
 
     const { cloudWatchLogs } = build.logs as LogsLocation;
     if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
@@ -211,7 +218,9 @@ class CodeBuildJob {
       const logStreamName = (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string;
 
       core.summary.addRaw(' | ')
-      core.summary.addLink(`AWS CloudWatch Logs`, `https://console.aws.amazon.com/cloudwatch/home?region=${region}#logEvent:group=${logGroupName};stream=${logStreamName}`);
+
+      const logsLink = `https://console.aws.amazon.com/cloudwatch/home?region=${region}#logEvent:group=${logGroupName};stream=${logStreamName}`;
+      core.summary.addLink(`AWS CloudWatch Logs`, redirectServiceURL ? `${redirectServiceURL}${Buffer.from(logsLink).toString('base64url')}` : logsLink);
     }
 
     core.summary.addBreak();

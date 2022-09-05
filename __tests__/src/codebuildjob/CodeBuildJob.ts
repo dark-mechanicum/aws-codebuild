@@ -173,7 +173,7 @@ describe('CodeBuildJob class functionality', () => {
 
   it('should setFail GitHub Action job on failing of AWS CodeBuild job', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+    const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, redirectServiceURL: 'https://test/' });
 
     startBuild.mockReturnValueOnce(createAWSResponse({
       build: {
