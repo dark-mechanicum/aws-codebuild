@@ -49,6 +49,7 @@ jobs:
           AWS_REGION: us-east-1
         with:
           projectName: 'testing-codebuild-logs'
+          redirectServiceURL: 'https://cloudaws.link/r/'
           buildspec: '{
             "environmentVariablesOverride":[
               { "name":"testEnvVar", "value":"Testing environment variable", "type": "PLAINTEXT" }
