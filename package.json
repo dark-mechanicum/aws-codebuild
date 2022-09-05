@@ -13,7 +13,7 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
-    "aws-sdk": "^2.1185.0",
+    "aws-sdk": "^2.1207.0",
     "nconf": "^0.12.0",
     "tslib": "^2.4.0"
   },
@@ -22,7 +22,7 @@
     "@types/nconf": "^0.10.3",
     "@types/node": "^18.6.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
-    "@typescript-eslint/parser": "^5.31.0",
+    "@typescript-eslint/parser": "^5.36.1",
     "@vercel/ncc": "^0.34.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.21.0",
