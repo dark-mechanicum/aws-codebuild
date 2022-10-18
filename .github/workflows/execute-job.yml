@@ -1,4 +1,4 @@
-name: Validation
+name: Execute real AWS CodeBuild project
 on:
   push:
     branches-ignore:
