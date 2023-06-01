@@ -14,7 +14,7 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
-    "aws-sdk": "^2.1370.0",
+    "aws-sdk": "^2.1388.0",
     "nconf": "^0.12.0",
     "tslib": "^2.5.0"
   },
