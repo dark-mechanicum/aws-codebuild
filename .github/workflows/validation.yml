@@ -12,7 +12,7 @@ jobs:
           node-version: '16'
 
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Restore cache of Node.js project dependencies
         id: cache-node-modules
@@ -39,7 +39,7 @@ jobs:
     needs: [ build ]
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Executing AWS CodeBuild task
         uses: ./
