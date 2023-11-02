@@ -43,7 +43,7 @@ interface CodeBuildJobOptions {
    * Start a batch build
    * @default false
    */
-  buildBatch?: boolean;
+  runBatch?: boolean;
 }
 
 class CodeBuildJob {
@@ -59,7 +59,7 @@ class CodeBuildJob {
     displayBuildLogs: true,
     logsUpdateInterval: 5000,
     waitToBuildEnd: true,
-    buildBatch: false,
+    runBatch: false,
   };
 
   constructor(params: StartBuildInput, options: CodeBuildJobOptions) {
@@ -69,11 +69,15 @@ class CodeBuildJob {
     this.options = { ...this.options, ...options };
 
     this.wait = this.wait.bind(this);
+
+    // Check the runBatch option and set the startBuild method accordingly
+    if (this.options.runBatch) {
+      this.startBuild = this.startBuildBatch;
+    }
   }
 
   public async startBuildBatch() {
     const { projectName } = this.params;
-    // const { buildBatch } = this.options;
 
     core.info(`Starting "${projectName}" CodeBuild project job`);
     debug('[CodeBuildJob] Doing request CodeBuild.startBuildBatch() with parameters', this.params);
@@ -82,7 +86,7 @@ class CodeBuildJob {
     const startBuildBatchOutput = await this.client.startBuildBatch(this.params).promise();
     debug('[CodeBuildJob] Received response from CodeBuild.startBuildBatch() request', startBuildBatchOutput);
 
-    if (!startBuildBatchOutput || !startBuildBatchOutput.buildBatch) {
+    if (!startBuildBatchOutput ?? !startBuildBatchOutput.buildBatch) {
       throw new Error(`Can't start ${projectName} CodeBuild job. Empty response from AWS API Endpoint`);
     }
 
@@ -97,17 +101,17 @@ class CodeBuildJob {
     }
 
     // initiate logger listening
-    const { cloudWatchLogs } = buildBatch.logs as LogsLocation;
-    if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
+    const logConfig = buildBatch.logConfig;
+    if (buildBatch.id && logConfig && logConfig.cloudWatchLogs && logConfig.cloudWatchLogs.status === 'ENABLED') {
       const options = {
         type: 'cloudwatch',
-        logGroupName: (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string,
-        logStreamName: (cloudWatchLogs.streamName || (buildBatch.id as string).split(':').at(-1)) as string,
-      }
+        logGroupName: logConfig.cloudWatchLogs.groupName ?? `/aws/codebuild/${projectName}`,
+        logStreamName: logConfig.cloudWatchLogs.streamName ?? (buildBatch.id.split(':').at(-1) as string),
+      };
 
       debug('[CodeBuildJob] Creating CloudWatch Logger with parameters:', options);
 
-      // logs will be displayed only if we have request to do it
+      // logs will be displayed only if we have a request to do it
       if (this.options.displayBuildLogs) {
         this.logger = new Logger(options, { updateInterval: this.options.logsUpdateInterval });
       }
@@ -137,7 +141,7 @@ class CodeBuildJob {
     const startBuildOutput = await this.client.startBuild(this.params).promise();
     debug('[CodeBuildJob]Received response from CodeBuild.startBuild() request', startBuildOutput);
 
-    if (!startBuildOutput || !startBuildOutput.build) {
+    if (!startBuildOutput ?? !startBuildOutput.build) {
       throw new Error(`Can't start ${projectName} CodeBuild job. Empty response from AWS API Endpoint`);
     }
 
@@ -157,8 +161,8 @@ class CodeBuildJob {
     if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
       const options = {
         type: 'cloudwatch',
-        logGroupName: (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string,
-        logStreamName: (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string,
+        logGroupName: (cloudWatchLogs.groupName ?? `/aws/codebuild/${projectName}`) as string,
+        logStreamName: (cloudWatchLogs.streamName ?? (build.id as string).split(':').at(-1)) as string,
       }
 
       debug('[CodeBuildJob] Creating CloudWatch Logger with parameters:', options);
@@ -276,8 +280,8 @@ class CodeBuildJob {
 
     const { cloudWatchLogs } = build.logs as LogsLocation;
     if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
-      const logGroupName = (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string;
-      const logStreamName = (cloudWatchLogs.streamName || (build.id as string).split(':').at(-1)) as string;
+      const logGroupName = (cloudWatchLogs.groupName ?? `/aws/codebuild/${projectName}`) as string;
+      const logStreamName = (cloudWatchLogs.streamName ?? (build.id as string).split(':').at(-1)) as string;
 
       core.summary.addRaw(' | ')
 
@@ -315,7 +319,7 @@ class CodeBuildJob {
       table.push([
         { data: phase.phaseType as string },
         { data: phase.phaseStatus as string },
-        { data: convertMsToTime(Number(phase.durationInSeconds || 0) * 1000) },
+        { data: convertMsToTime(Number(phase.durationInSeconds ?? 0) * 1000) },
       ]);
     })
 
