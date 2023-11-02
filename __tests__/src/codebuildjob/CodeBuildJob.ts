@@ -78,6 +78,7 @@ describe('CodeBuildJob class functionality', () => {
     displayBuildLogs: true,
     logsUpdateInterval: 5000,
     waitToBuildEnd: true,
+    buildBatch: true,
   };
 
   beforeAll(() => {

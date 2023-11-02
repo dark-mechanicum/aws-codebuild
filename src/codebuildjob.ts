@@ -39,6 +39,11 @@ interface CodeBuildJobOptions {
    * @example https://cloudaws.link/r/
    */
   redirectServiceURL?: string;
+  /**
+   * Start a batch build
+   * @default false
+   */
+  buildBatch?: boolean;
 }
 
 class CodeBuildJob {
@@ -54,6 +59,7 @@ class CodeBuildJob {
     displayBuildLogs: true,
     logsUpdateInterval: 5000,
     waitToBuildEnd: true,
+    buildBatch: false,
   };
 
   constructor(params: StartBuildInput, options: CodeBuildJobOptions) {
@@ -67,6 +73,7 @@ class CodeBuildJob {
 
   public async startBuildBatch() {
     const { projectName } = this.params;
+    // const { buildBatch } = this.options;
 
     core.info(`Starting "${projectName}" CodeBuild project job`);
     debug('[CodeBuildJob] Doing request CodeBuild.startBuildBatch() with parameters', this.params);
@@ -88,6 +95,34 @@ class CodeBuildJob {
     if (!this.options.waitToBuildEnd) {
       core.info(`The "waitToBuildEnd" input is in a false state. No need to track logs and status. Stopping...`);
     }
+
+    // initiate logger listening
+    const { cloudWatchLogs } = buildBatch.logs as LogsLocation;
+    if (cloudWatchLogs && cloudWatchLogs.status === 'ENABLED') {
+      const options = {
+        type: 'cloudwatch',
+        logGroupName: (cloudWatchLogs.groupName || `/aws/codebuild/${projectName}`) as string,
+        logStreamName: (cloudWatchLogs.streamName || (buildBatch.id as string).split(':').at(-1)) as string,
+      }
+
+      debug('[CodeBuildJob] Creating CloudWatch Logger with parameters:', options);
+
+      // logs will be displayed only if we have request to do it
+      if (this.options.displayBuildLogs) {
+        this.logger = new Logger(options, { updateInterval: this.options.logsUpdateInterval });
+      }
+    }
+
+    // helper message to help track why logs are not displayed
+    if (!this.options.displayBuildLogs) {
+      core.info(`The displayBuildLogs input in false state. CodeBuild logs output will not be displayed`);
+    }
+
+    if (!this.logger && this.options.displayBuildLogs) {
+      core.info(`Can't find logs output for AWS CodeBuild job: ${buildBatch.id}`);
+    }
+
+    await this.wait();
   }
 
 

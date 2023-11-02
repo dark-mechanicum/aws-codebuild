@@ -1,3 +1,7 @@
+# About
+
+Forked from dark-mechanicum/aws-codebuild
+
 # dark-mechanicum/aws-codebuild
 
 [![CodeQL Badge for v1 tag](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/codeql.yml/badge.svg?tag=v1)](https://github.com/dark-mechanicum/aws-codebuild/actions/workflows/codeql.yml)
@@ -119,7 +123,7 @@ Most elegant way to implement overriding of [CodeBuild.startBuild()](https://doc
 
 For overriding through environment variables, you need to define environment variable `CODEBUILD__environmentVariablesOverride` and assign complex and valid JSON value to that variable.
 
-To example, if you want to override `environmentVariablesOverride` property (it requires array of objects), you need define `CODEBUILD__environmentVariablesOverride` and assign to it required JSON value 
+To example, if you want to override `environmentVariablesOverride` property (it requires array of objects), you need define `CODEBUILD__environmentVariablesOverride` and assign to it required JSON value
 
 ```yaml
 - name: AWS CodeBuild Job
@@ -133,7 +137,7 @@ To example, if you want to override `environmentVariablesOverride` property (it 
     ]'
 ```
 
-In case, if configuration option do not have a complex type, you can define single environment variable with required to you value. 
+In case, if configuration option do not have a complex type, you can define single environment variable with required to you value.
 ```yaml
 - name: AWS CodeBuild Job
   uses: dark-mechanicum/aws-codebuild@v1
