@@ -21,7 +21,7 @@ const job = new CodeBuildJob({
   redirectServiceURL: core.getInput('redirectServiceURL') || undefined,
 });
 
-job.startBuild().catch(error => core.setFailed(error as Error));
+job.startBuildBatch().catch(error => core.setFailed(error as Error));
 
 /**
  * Reaction to job cancellation
