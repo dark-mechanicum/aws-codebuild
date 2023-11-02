@@ -69,10 +69,6 @@ class CodeBuildJob {
     this.options = { ...this.options, ...options };
 
     this.wait = this.wait.bind(this);
-    // Check the runBatch option and set the startBuild method accordingly
-    if (this.options.runBatch) {
-      this.startBuild = this.startBuildBatch;
-    }
   }
 
 

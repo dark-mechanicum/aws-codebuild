@@ -19,6 +19,7 @@ const job = new CodeBuildJob({
   waitToBuildEnd: !!core.getBooleanInput('waitToBuildEnd'),
   displayBuildLogs: !!core.getBooleanInput('displayBuildLogs'),
   redirectServiceURL: core.getInput('redirectServiceURL') || undefined,
+  runBatch: !!core.getBooleanInput('runBatch'),
 });
 
 job.startBuildBatch().catch(error => core.setFailed(error as Error));
