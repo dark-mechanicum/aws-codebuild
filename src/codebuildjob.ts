@@ -45,6 +45,7 @@ class CodeBuildJob {
   protected params: StartBuildInput;
   protected client = new CodeBuild();
   protected build: CodeBuild.Build = {};
+  protected buildBatch: CodeBuild.BuildBatch = {};
   protected logger?: Logger;
   protected timeout?: NodeJS.Timeout;
   protected currentPhase: BuildPhaseType | 'STARTING' = 'STARTING';
@@ -63,6 +64,32 @@ class CodeBuildJob {
 
     this.wait = this.wait.bind(this);
   }
+
+  public async startBuildBatch() {
+    const { projectName } = this.params;
+
+    core.info(`Starting "${projectName}" CodeBuild project job`);
+    debug('[CodeBuildJob] Doing request CodeBuild.startBuildBatch() with parameters', this.params);
+
+    // Use the `startBuildBatch` method to start the build.
+    const startBuildBatchOutput = await this.client.startBuildBatch(this.params).promise();
+    debug('[CodeBuildJob] Received response from CodeBuild.startBuildBatch() request', startBuildBatchOutput);
+
+    if (!startBuildBatchOutput || !startBuildBatchOutput.buildBatch) {
+      throw new Error(`Can't start ${projectName} CodeBuild job. Empty response from AWS API Endpoint`);
+    }
+
+    const { buildBatch } = startBuildBatchOutput;
+    this.buildBatch = buildBatch;
+
+    core.info(`CodeBuild project job ${buildBatch.id} was started successfully`);
+
+    // If we don't need to wait until AWS CodeBuild will be finished, skip logs registering and build status checks
+    if (!this.options.waitToBuildEnd) {
+      core.info(`The "waitToBuildEnd" input is in a false state. No need to track logs and status. Stopping...`);
+    }
+  }
+
 
   /**
    * Starting a CodeBuild job
@@ -144,7 +171,7 @@ class CodeBuildJob {
     debug('[CodeBuildJob] Starting updating job status');
 
     const { id } = this.build as CodeBuild.Build;
-    const request = { ids: [ id as string ] };
+    const request = { ids: [id as string] };
 
     debug('[CodeBuildJob] Doing request to the CodeBuild.batchGetBuilds() with parameters:', request);
     const response = await this.client.batchGetBuilds(request).promise() as BatchGetBuildsOutput;
@@ -205,7 +232,7 @@ class CodeBuildJob {
   protected async generateSummary(build: Build): Promise<void> {
     core.summary.addHeading(`AWS CodeBuild ${build.id}`);
 
-    const [ ,,,region,accountID ] = (build.arn as string).split(':');
+    const [, , , region, accountID] = (build.arn as string).split(':');
     const projectName = build.projectName as string;
     const { redirectServiceURL } = this.options;
 
@@ -243,9 +270,9 @@ class CodeBuildJob {
     core.summary.addCodeBlock(JSON.stringify(this.params, null, 2), 'json');
 
     const table: SummaryTableRow[] = [[
-      {data: 'Phase Name', header: true},
-      {data: 'Status', header: true},
-      {data: 'Total duration', header: true},
+      { data: 'Phase Name', header: true },
+      { data: 'Status', header: true },
+      { data: 'Total duration', header: true },
     ]];
 
     const { phases } = build as { phases: BuildPhases };
