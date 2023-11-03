@@ -163,19 +163,19 @@ class CodeBuildJob {
   public async startBuild() {
     const { projectName } = this.params;
 
-    core.info(`Starting "${projectName}" CodeBuild project job`);
+    core.info(`Starting "${projectName}" CodeBuild build project job`);
     debug('[CodeBuildJob] Doing request CodeBuild.startBuild() with parameters', this.params);
     const startBuildOutput = await this.client.startBuild(this.params).promise();
     debug('[CodeBuildJob]Received response from CodeBuild.startBuild() request', startBuildOutput);
 
     if (!startBuildOutput ?? !startBuildOutput.build) {
-      throw new Error(`Can't start ${projectName} CodeBuild job. Empty response from AWS API Endpoint`);
+      throw new Error(`Can't start ${projectName} CodeBuild build job. Empty response from AWS API Endpoint`);
     }
 
     const { build } = startBuildOutput;
     this.build = build;
 
-    core.info(`CodeBuild project job ${build.id} was started successfully`);
+    core.info(`CodeBuild project build job ${build.id} was started successfully`);
 
     // if we don't need to wait till AWS CodeBuild will be finished, skip logs registering and build status checks
     if (!this.options.waitToBuildEnd) {
