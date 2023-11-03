@@ -35,6 +35,10 @@ inputs:
     description: 'Custom buildSpec job overrides in the valid JSON format'
     required: false
     default: '{}'
+  runBatch:
+    description: 'Run batch build'
+    required: false
+    default: 'false'
 outputs:
   id:
     description: 'The unique ID for the build'
