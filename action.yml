@@ -1,4 +1,4 @@
-name: 'dark-mechanicum/aws-codebuild'
+name: 'rafzei/aws-codebuild'
 author: 'Andrei Kazakou <a.v.kazakou@gmail.com>'
 description: 'GitHub Action to execute AWS CodeBuild jobs'
 branding:
