@@ -45,7 +45,7 @@ interface CodeBuildJobOptions {
   redirectServiceURL?: string;
   /**
    * Start a batch build
-   * @default false
+   * @default true
    */
   runBatch?: boolean;
 }
@@ -63,7 +63,7 @@ class CodeBuildJob {
     displayBuildLogs: true,
     logsUpdateInterval: 5000,
     waitToBuildEnd: true,
-    runBatch: false,
+    runBatch: true,
   };
 
   constructor(params: StartBuildInput, options: CodeBuildJobOptions) {
@@ -87,9 +87,9 @@ class CodeBuildJob {
     try {
 
       const { projectName } = this.params;
-      console.log(`Starting "${projectName}" CodeBuild project job`);
+      console.log(`Starting "${projectName}" CodeBuild project batch job`);
 
-      core.info(`Starting "${projectName}" CodeBuild project job`);
+      core.info(`Starting "${projectName}" CodeBuild project batch job`);
       debug('[CodeBuildJob] Doing request CodeBuild.startBuildBatch() with parameters', this.params);
       console.log('[CodeBuildJob] Doing request CodeBuild.startBuildBatch() with parameters', this.params);
       // Use the `startBuildBatch` method to start the build.
