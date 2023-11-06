@@ -5,6 +5,7 @@ const mocks: Record<string, jest.Mock> = {
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
   startBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.startBuild()'),
+  startBuildBatch: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.startBuildBatch()'),
   cancelBuild: jest.fn().mockName('Mock: "src/codebuildjob".CodeBuildJob.cancelBuild()'),
 };
 
@@ -24,6 +25,7 @@ describe('CodeBuildJob class functionality', () => {
     process.env = { ...OLD_ENV }; // Make a copy
     CodeBuildJobMock = jest.fn(() => ({
       startBuild: mocks.startBuild,
+      startBuildBatch: mocks.startBuildBatch,
       cancelBuild: mocks.cancelBuild,
     }))
 
@@ -42,7 +44,7 @@ describe('CodeBuildJob class functionality', () => {
     jest.unmock('../../../src/codebuildjob');
   });
 
-  it('should trigger job successfully', async () => {
+  it('should trigger startBuild job successfully', async () => {
     process.env.INPUT_PROJECTNAME = 'test';
     process.env.INPUT_BUILDSTATUSINTERVAL = '5000';
     process.env.INPUT_DISPLAYBUILDLOGS = 'true';
@@ -64,7 +66,15 @@ describe('CodeBuildJob class functionality', () => {
       }
     });
 
-    actionsCoreGetBooleanInput.mockReturnValue(true);
+    actionsCoreGetBooleanInput.mockImplementation((val: string) => {
+      switch (val) {
+        case 'displayBuildLogs': return true;
+        case 'waitToBuildEnd': return true;
+        case 'redirectServiceURL': return false;
+        case 'runBatch': return false;
+        default: return false;
+      }
+    });
 
     require('../../../src/index');
 
@@ -82,6 +92,62 @@ describe('CodeBuildJob class functionality', () => {
       displayBuildLogs: true,
       logsUpdateInterval: 5000,
       waitToBuildEnd: true,
+      redirectServiceURL: undefined,
+      runBatch: false,
+    })
+  });
+
+  it('should trigger startBuildBatch job successfully', async () => {
+    process.env.INPUT_PROJECTNAME = 'test';
+    process.env.INPUT_BUILDSTATUSINTERVAL = '5000';
+    process.env.INPUT_DISPLAYBUILDLOGS = 'true';
+    process.env.INPUT_LOGSUPDATEINTERVAL = '5000';
+    process.env.INPUT_WAITTOBUILDEND = 'true';
+    process.env.INPUT_RUNBATCH = 'true';
+    process.env.CODEBUILD__test__nested__variable = 'CODEBUILD__test_nested_variable';
+    process.env.CODEBUILD__test__nested__bool = 'true';
+    process.env.CODEBUILD__test__nested__number = '555';
+
+    const { startBuildBatch, actionsCoreGetInput, actionsCoreGetBooleanInput } = mocks;
+    startBuildBatch.mockReturnValue({ catch: jest.fn() });
+    actionsCoreGetInput.mockImplementation((val: string) => {
+      switch (val) {
+        case 'projectName': return 'test';
+        case 'buildStatusInterval': return '5000';
+        case 'logsUpdateInterval': return '5000';
+        case 'buildspec': return '{}';
+        default: return '';
+      }
+    });
+
+    actionsCoreGetBooleanInput.mockImplementation((val: string) => {
+      switch (val) {
+        case 'displayBuildLogs': return true;
+        case 'waitToBuildEnd': return true;
+        case 'redirectServiceURL': return false;
+        case 'runBatch': return true;
+        default: return false;
+      }
+    });
+
+    require('../../../src/index');
+
+    expect(CodeBuildJobMock).toHaveBeenLastCalledWith({
+      projectName: 'test',
+      test: {
+        nested: {
+          variable: 'CODEBUILD__test_nested_variable',
+          bool: true,
+          number: 555,
+        },
+      },
+    }, {
+      buildStatusInterval: 5000,
+      displayBuildLogs: true,
+      logsUpdateInterval: 5000,
+      waitToBuildEnd: true,
+      redirectServiceURL: undefined,
+      runBatch: true,
     })
   });
 
@@ -147,6 +213,8 @@ describe('CodeBuildJob class functionality', () => {
       displayBuildLogs: false,
       logsUpdateInterval: 5000,
       waitToBuildEnd: false,
+      redirectServiceURL: undefined,
+      runBatch: false,
     });
   });
 });

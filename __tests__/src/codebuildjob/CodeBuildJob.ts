@@ -2,6 +2,7 @@ const mocks = {
   startBuild: jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.startBuild()'),
   startBuildBatch: jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.startBuildBatch()'),
   batchGetBuilds: jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.batchGetBuilds()'),
+  batchGetBuildBatches:  jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.batchGetBuildBatches()'),
   stopBuild: jest.fn().mockName('Mock: "aws-sdk".CodeBuild.prototype.stopBuild()'),
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
   actionsCoreSetFailed: jest.fn().mockName('Mock: "@actions/core".setFailed()'),
@@ -22,6 +23,7 @@ jest.mock('aws-sdk', () => ({
     startBuild: mocks.startBuild,
     startBuildBatch: mocks.startBuildBatch,
     batchGetBuilds: mocks.batchGetBuilds,
+    batchGetBuildBatches: mocks.batchGetBuildBatches,
     stopBuild: mocks.stopBuild,
   })),
 }));
@@ -56,7 +58,7 @@ jest.mock('../../../src/logger', () => ({
 }));
 
 import { CodeBuildJob } from '../../../src/codebuildjob';
-import { StartBuildOutput, StartBuildBatchOutput, BatchGetBuildsOutput, StopBuildOutput } from 'aws-sdk/clients/codebuild';
+import { StartBuildOutput, StartBuildBatchOutput, BatchGetBuildsOutput, BatchGetBuildBatchesOutput, StopBuildOutput } from 'aws-sdk/clients/codebuild';
 
 describe('CodeBuildJob class functionality', () => {
   const createAWSResponse = (resolves: unknown) => ({ promise: () => Promise.resolve(resolves) });
@@ -74,6 +76,14 @@ describe('CodeBuildJob class functionality', () => {
     ]
   };
   const codeBuildJobOptions = {
+    buildStatusInterval: 5000,
+    displayBuildLogs: true,
+    logsUpdateInterval: 5000,
+    waitToBuildEnd: true,
+    buildBatch: false,
+  };
+
+  const codeBuildJobOptionsBatch = {
     buildStatusInterval: 5000,
     displayBuildLogs: true,
     logsUpdateInterval: 5000,
@@ -98,20 +108,20 @@ describe('CodeBuildJob class functionality', () => {
   });
 
   it('startBuildBatch() should complete whole cycle successfully', async () => {
-    const { startBuildBatch, batchGetBuilds, stopBuild, loggerStart, loggerStop } = mocks;
-    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+    const { startBuildBatch, batchGetBuildBatches, stopBuild, loggerStart, loggerStop } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptionsBatch);
 
     startBuildBatch.mockReturnValueOnce(createAWSResponse({
       buildBatch: buildDesc,
     } as StartBuildBatchOutput));
 
-    stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
+    stopBuild.mockReturnValue(createAWSResponse({ buildBatch: {} } as StopBuildOutput));
 
-    batchGetBuilds
-      .mockReturnValueOnce(createAWSResponse({ builds: [{ ...buildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' }] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [{ ...buildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' }] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [{ ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' }] } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ builds: [{ ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' }] } as BatchGetBuildsOutput));
+    batchGetBuildBatches
+      .mockReturnValueOnce(createAWSResponse({ buildBatches: [{ ...buildDesc, currentPhase: 'QUEUED', buildBatchStatus: 'IN_PROGRESS' }] } as BatchGetBuildBatchesOutput))
+      .mockReturnValueOnce(createAWSResponse({ buildBatches: [{ ...buildDesc, currentPhase: 'PROVISIONING', buildBatchStatus: 'IN_PROGRESS' }] } as BatchGetBuildBatchesOutput))
+      .mockReturnValueOnce(createAWSResponse({ buildBatches: [{ ...buildDesc, currentPhase: 'BUILD', buildBatchStatus: 'IN_PROGRESS' }] } as BatchGetBuildBatchesOutput))
+      .mockReturnValueOnce(createAWSResponse({ buildBatches: [{ ...buildDesc, currentPhase: 'COMPLETED', buildBatchStatus: 'SUCCEEDED' }] } as BatchGetBuildBatchesOutput));
 
     await job.startBuildBatch();
     expect(loggerStart).not.toBeCalled();
