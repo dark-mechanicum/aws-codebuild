@@ -214,6 +214,49 @@ describe('CodeBuildJob class functionality', () => {
     expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
+  it('should setFail GitHub Action job on failing of AWS CodeBuild job in failed phase', async () => {
+    const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, redirectServiceURL: 'https://test/' });
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: {
+        id: 'test:testStreamID',
+        logs: { cloudWatchLogs: { status: 'DISABLED' } },
+      },
+    } as StartBuildOutput));
+
+    stopBuild.mockReturnValue(createAWSResponse({ build: {} } as StopBuildOutput));
+
+    batchGetBuilds
+        .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+        .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+        .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+        .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'FAILED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
+
+    await job.startBuild();
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    expect(loggerStart).not.toBeCalled();
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    await job.cancelBuild();
+    expect(stopBuild).toBeCalled();
+    expect(loggerStop).not.toBeCalled();
+
+    process.emit('exit', 1);
+    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
+  });
+
   it('should wait till build will be finished with disabled logs output', async () => {
     const { startBuild, batchGetBuilds, stopBuild, loggerStart, loggerStop, actionsCoreSetFailed } = mocks;
     const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, displayBuildLogs: false });

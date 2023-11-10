@@ -160,6 +160,13 @@ class CodeBuildJob {
       this.logger?.start();
     }
 
+    if(currentPhase === 'FAILED' || currentPhase === 'FAULT') {
+      debug('[CodeBuildJob] Detected job execution finished');
+      process.on('exit', () => {
+        core.setFailed(`Job ${this.build.id} failed with status: ${buildStatus}`);
+      });
+    }
+
     if (currentPhase === 'COMPLETED') {
       debug('[CodeBuildJob] Stopping listening of job logs output');
       this.logger?.stop();
