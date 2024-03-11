@@ -34,11 +34,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           config-file: ./.github/codeql/codeql-config.yml
           languages: ${{ matrix.language }}
@@ -50,12 +50,12 @@ jobs:
           # queries: security-extended,security-and-quality
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: "20"
 
       - name: Checkout source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Restore cache of Node.js project dependencies
         id: cache-node-modules
@@ -84,4 +84,4 @@ jobs:
       #   ./location_of_script_within_repo/buildscript.sh
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
