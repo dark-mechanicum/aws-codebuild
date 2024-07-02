@@ -16,7 +16,7 @@ const mocks = {
   loggerStop: jest.fn().mockName('Mock: "src/logger".Logger.stop()'),
 };
 
-jest.mock('aws-sdk', () => ({
+jest.mock('@aws-sdk/client-codebuild', () => ({
   CodeBuild: jest.fn(() => ({
     startBuild: mocks.startBuild,
     batchGetBuilds: mocks.batchGetBuilds,
@@ -54,10 +54,10 @@ jest.mock('../../../src/logger', () => ({
 }));
 
 import { CodeBuildJob } from '../../../src/codebuildjob';
-import { StartBuildOutput, BatchGetBuildsOutput, StopBuildOutput } from 'aws-sdk/clients/codebuild';
+import { StartBuildOutput, BatchGetBuildsOutput, StopBuildOutput } from '@aws-sdk/client-codebuild';
 
 describe('CodeBuildJob class functionality', () => {
-  const createAWSResponse = (resolves: unknown) => ({ promise: () => Promise.resolve(resolves) });
+  const createAWSResponse = (resolves: unknown) => resolves;
   const buildDesc = {
     id: 'test:testStreamID',
     logs: { cloudWatchLogs: { status: 'ENABLED' } },
@@ -84,7 +84,7 @@ describe('CodeBuildJob class functionality', () => {
   });
 
   afterAll(() => {
-    jest.unmock('aws-sdk');
+    jest.unmock('@aws-sdk/client-codebuild');
     jest.unmock('@actions/core');
     jest.unmock('../../../src/logger');
     jest.useRealTimers();
