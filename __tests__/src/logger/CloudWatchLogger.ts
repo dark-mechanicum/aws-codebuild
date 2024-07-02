@@ -1,5 +1,3 @@
-import { AWSError } from 'aws-sdk';
-
 const mocks = {
   getLogEvents: jest.fn().mockName('Mock: "aws-sdk".CloudWatchLogs.prototype.getLogEvents()'),
   actionsCoreInfo: jest.fn().mockName('Mock: "@actions/core".info()'),
@@ -9,7 +7,7 @@ const mocks = {
   actionsCoreError: jest.fn().mockName('Mock: "@actions/core".error()'),
 }
 
-jest.mock("aws-sdk", () => ({
+jest.mock("@aws-sdk/client-cloudwatch-logs", () => ({
   CloudWatchLogs: jest.fn(() => ({
     getLogEvents: mocks.getLogEvents,
   })),
@@ -27,15 +25,14 @@ import { CloudWatchLogger } from '../../../src/logger';
 
 
 describe('CloudWatchLogs Logger getEvents() method', () => {
-  const createAWSResponse = (resolves: unknown) => ({ promise: () => Promise.resolve(resolves) });
-  const createAWSReject = (reject: unknown) => ({ promise: () => Promise.reject(reject) });
+  const createAWSResponse = (resolves: unknown) => resolves;
 
   beforeAll(() => {
     jest.useFakeTimers();
   });
 
   afterAll(() => {
-    jest.unmock("aws-sdk");
+    jest.unmock("@aws-sdk/client-cloudwatch-logs");
     jest.unmock("@actions/core");
     jest.useRealTimers();
   });
@@ -77,9 +74,9 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     const error = {
       message: 'test error',
       code: 'AccessDeniedException',
-    } as AWSError;
+    } as Error & { code: string };
 
-    getLogEvents.mockReturnValue(createAWSReject(error));
+    getLogEvents.mockRejectedValue(error);
     const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
     const stopListenSpy = jest.spyOn(logger, 'stopListen');
 

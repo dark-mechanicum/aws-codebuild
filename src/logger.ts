@@ -1,6 +1,5 @@
 import * as core from '@actions/core';
-import { CloudWatchLogs, AWSError } from 'aws-sdk';
-import { GetLogEventsRequest, Timestamp } from 'aws-sdk/clients/cloudwatchlogs';
+import { CloudWatchLogs, GetLogEventsRequest } from '@aws-sdk/client-cloudwatch-logs';
 import { debug } from './utils';
 
 /**
@@ -23,7 +22,7 @@ class CloudWatchLogger {
    * Latest processed log record timestamp
    * @protected
    */
-  protected maxTimestamp: Timestamp = 0;
+  protected maxTimestamp: number = 0;
 
   /**
    * Timeout before doing next request for getting logs request again
@@ -119,7 +118,7 @@ class CloudWatchLogger {
     // executing request to the CloudWatch Logs API
     try {
       debug('[CloudWatchLogger] Doing request to the CloudWatchLogs.getLogEvents() with parameters:', request);
-      const response = await this.client.getLogEvents(request).promise();
+      const response = await this.client.getLogEvents(request);
       debug('[CloudWatchLogger] Received response from CloudWatchLogs.getLogEvents():', response);
 
       const { events, nextForwardToken: nextToken } = response;
@@ -138,7 +137,7 @@ class CloudWatchLogger {
         }
       }
     } catch (e) {
-      const { message, code } = e as AWSError;
+      const { message, code } = e as Error & { code: string };
 
       // in case if we do not have access to read logs, no make sense listen it again
       if (code === 'AccessDeniedException') {

@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import nconf from 'nconf';
 import { CodeBuildJob } from './codebuildjob';
-import { AWSError } from 'aws-sdk';
 
 const config = nconf.env({
   separator: '__',
@@ -31,7 +30,7 @@ process.on('SIGINT', async () => {
   try {
     await job.cancelBuild();
   } catch (error) {
-    core.error(error as AWSError);
+    core.error(error as Error);
   }
 
   process.exit(0);

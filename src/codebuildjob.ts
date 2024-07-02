@@ -1,17 +1,15 @@
 import * as core from '@actions/core';
-import { CodeBuild } from 'aws-sdk';
 import { debug, convertMsToTime } from './utils';
 import { Logger } from './logger';
 import { SummaryTableRow } from '@actions/core/lib/summary';
 import {
-  BatchGetBuildsOutput,
+  CodeBuild,
   BuildPhaseType,
-  Builds,
+  BuildPhase,
   LogsLocation,
   StartBuildInput,
   Build,
-} from 'aws-sdk/clients/codebuild';
-import { BuildPhase, BuildPhases } from 'aws-sdk/clients/codebuild';
+} from '@aws-sdk/client-codebuild';
 
 interface CodeBuildJobOptions {
   /**
@@ -44,7 +42,7 @@ interface CodeBuildJobOptions {
 class CodeBuildJob {
   protected params: StartBuildInput;
   protected client = new CodeBuild();
-  protected build: CodeBuild.Build = {};
+  protected build: Build = {};
   protected logger?: Logger;
   protected timeout?: NodeJS.Timeout;
   protected currentPhase: BuildPhaseType | 'STARTING' = 'STARTING';
@@ -72,7 +70,7 @@ class CodeBuildJob {
 
     core.info(`Starting "${projectName}" CodeBuild project job`);
     debug('[CodeBuildJob] Doing request CodeBuild.startBuild() with parameters', this.params);
-    const startBuildOutput = await this.client.startBuild(this.params).promise();
+    const startBuildOutput = await this.client.startBuild(this.params);
     debug('[CodeBuildJob]Received response from CodeBuild.startBuild() request', startBuildOutput);
 
     if (!startBuildOutput || !startBuildOutput.build) {
@@ -127,7 +125,7 @@ class CodeBuildJob {
 
     core.warning(`Canceling job ${this.build.id}`);
     debug(' [CodeBuildJob]Sending request to cancel job execution CodeBuild.stopBuild() with parameters:', request);
-    const response = await this.client.stopBuild(request).promise();
+    const response = await this.client.stopBuild(request);
     debug('[CodeBuildJob] Received response from CodeBuild.stopBuild() request:', response);
     core.info(`Build ${this.build.id} was successfully canceled`);
 
@@ -143,15 +141,15 @@ class CodeBuildJob {
   protected async wait() {
     debug('[CodeBuildJob] Starting updating job status');
 
-    const { id } = this.build as CodeBuild.Build;
+    const { id } = this.build as Build;
     const request = { ids: [ id as string ] };
 
     debug('[CodeBuildJob] Doing request to the CodeBuild.batchGetBuilds() with parameters:', request);
-    const response = await this.client.batchGetBuilds(request).promise() as BatchGetBuildsOutput;
+    const response = await this.client.batchGetBuilds(request);
     debug('[CodeBuildJob] Received response from CodeBuild.batchGetBuilds() call:', response);
 
     const { builds } = response;
-    const build = (builds as Builds).at(0) as Build;
+    const build = (builds as Build[]).at(0) as Build;
     const { currentPhase, buildStatus } = build;
 
     const phasesWithoutLogs: BuildPhaseType[] = ['SUBMITTED', 'QUEUED', 'PROVISIONING'];
@@ -255,7 +253,7 @@ class CodeBuildJob {
       {data: 'Total duration', header: true},
     ]];
 
-    const { phases } = build as { phases: BuildPhases };
+    const { phases } = build as { phases: BuildPhase[] };
     phases.forEach((phase: BuildPhase) => {
       table.push([
         { data: phase.phaseType as string },
