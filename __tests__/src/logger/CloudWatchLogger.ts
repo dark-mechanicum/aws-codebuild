@@ -96,13 +96,13 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     const { getLogEvents, actionsCoreInfo } = mocks;
     getLogEvents
       // First call returns nextForwardToken which triggers recursive call
-      .mockReturnValueOnce(createAWSResponse({ 
-        events, 
+      .mockReturnValueOnce(createAWSResponse({
+        events,
         nextForwardToken: 'page2token'
       }))
       // Recursive call with nextForwardToken
-      .mockReturnValueOnce(createAWSResponse({ 
-        events: [{ ingestionTime: (new Date()).getTime(), timestamp: (new Date()).getTime(), message: 'Test3' }], 
+      .mockReturnValueOnce(createAWSResponse({
+        events: [{ ingestionTime: (new Date()).getTime(), timestamp: (new Date()).getTime(), message: 'Test3' }],
         nextForwardToken: null
       }));
 

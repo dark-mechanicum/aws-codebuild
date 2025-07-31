@@ -354,13 +354,13 @@ describe('CodeBuildJob class functionality', () => {
     // Run the first polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // This final timer execution should detect SUCCEEDED and generate outputs
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -407,13 +407,13 @@ describe('CodeBuildJob class functionality', () => {
     // Run the polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // Final timer execution detects SUCCEEDED and generates outputs and summary
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -449,13 +449,13 @@ describe('CodeBuildJob class functionality', () => {
     // Run the polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // Final timer execution detects SUCCEEDED and generates outputs and summary
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -496,13 +496,13 @@ describe('CodeBuildJob class functionality', () => {
     // Run the polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // Final timer execution detects SUCCEEDED and generates outputs and summary
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -538,13 +538,13 @@ describe('CodeBuildJob class functionality', () => {
     // Run the polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // Final timer execution detects FAILED and generates outputs and summary
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -574,15 +574,15 @@ describe('CodeBuildJob class functionality', () => {
     // Run the polling cycles
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // This second call should have the same phase, testing the else branch of currentPhase !== this.currentPhase
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // This call detects COMPLETED status and should trigger both output generation and phase change
     jest.runOnlyPendingTimers();
     await Promise.resolve();
-    
+
     // Run one more timer to ensure final processing
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -604,11 +604,11 @@ describe('CodeBuildJob class functionality', () => {
     // Setup multiple mock calls: one for startBuild, one for the direct wait() call
     // The key is to have COMPLETED phase with IN_PROGRESS status to hit the else branch
     batchGetBuilds
-      .mockReturnValueOnce(createAWSResponse({ 
-        builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] 
+      .mockReturnValueOnce(createAWSResponse({
+        builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ]
       } as BatchGetBuildsOutput))
-      .mockReturnValueOnce(createAWSResponse({ 
-        builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'IN_PROGRESS' } ] 
+      .mockReturnValueOnce(createAWSResponse({
+        builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'IN_PROGRESS' } ]
       } as BatchGetBuildsOutput));
 
     // Start the build to initialize the job
@@ -623,10 +623,10 @@ describe('CodeBuildJob class functionality', () => {
 
     // Verify that setOutput was NOT called (because status is IN_PROGRESS in COMPLETED phase)
     expect(actionsCoreSetOutput).not.toHaveBeenCalled();
-    
+
     // Verify that debug was called (showing the method executed)
     expect(actionsCoreDebug).toHaveBeenCalled();
-    
+
     // Also verify that the debug message about composing outputs was NOT called
     expect(actionsCoreDebug).not.toHaveBeenCalledWith('[CodeBuildJob] Composing GitHub Action outputs');
   });
