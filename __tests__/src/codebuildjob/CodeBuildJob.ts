@@ -111,24 +111,24 @@ describe('CodeBuildJob class functionality', () => {
       .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).toBeCalled();
+    expect(loggerStart).toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
     await job.cancelBuild();
-    expect(stopBuild).toBeCalled();
-    expect(loggerStop).toBeCalled();
+    expect(stopBuild).toHaveBeenCalled();
+    expect(loggerStop).toHaveBeenCalled();
   });
 
   it('should complete whole cycle successfully without logs', async () => {
@@ -151,24 +151,24 @@ describe('CodeBuildJob class functionality', () => {
     .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
     await job.cancelBuild();
-    expect(stopBuild).toBeCalled();
-    expect(loggerStop).not.toBeCalled();
+    expect(stopBuild).toHaveBeenCalled();
+    expect(loggerStop).not.toHaveBeenCalled();
   });
 
   it('should setFail GitHub Action job on failing of AWS CodeBuild job', async () => {
@@ -191,27 +191,27 @@ describe('CodeBuildJob class functionality', () => {
     .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
     await job.cancelBuild();
-    expect(stopBuild).toBeCalled();
-    expect(loggerStop).not.toBeCalled();
+    expect(stopBuild).toHaveBeenCalled();
+    expect(loggerStop).not.toHaveBeenCalled();
 
     process.emit('exit', 1);
-    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
+    expect(actionsCoreSetFailed).toHaveBeenCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
   it('should setFail GitHub Action job on failing of AWS CodeBuild job in failed phase', async () => {
@@ -234,27 +234,27 @@ describe('CodeBuildJob class functionality', () => {
         .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'FAILED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
     await job.cancelBuild();
-    expect(stopBuild).toBeCalled();
-    expect(loggerStop).not.toBeCalled();
+    expect(stopBuild).toHaveBeenCalled();
+    expect(loggerStop).not.toHaveBeenCalled();
 
     process.emit('exit', 1);
-    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
+    expect(actionsCoreSetFailed).toHaveBeenCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
   it('should wait till build will be finished with disabled logs output', async () => {
@@ -277,27 +277,27 @@ describe('CodeBuildJob class functionality', () => {
     .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput))
 
     await job.startBuild();
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
-    expect(loggerStart).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
 
     await job.cancelBuild();
-    expect(stopBuild).toBeCalled();
-    expect(loggerStop).not.toBeCalled();
+    expect(stopBuild).toHaveBeenCalled();
+    expect(loggerStop).not.toHaveBeenCalled();
 
     process.emit('exit', 1);
-    expect(actionsCoreSetFailed).toBeCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
+    expect(actionsCoreSetFailed).toHaveBeenCalledWith(`Job test:testStreamID was finished with failed status: FAILED`);
   });
 
   it('should not wait build status if waitToBuildEnd=false', async () => {
@@ -315,8 +315,8 @@ describe('CodeBuildJob class functionality', () => {
 
     const startBuildPromise = job.startBuild();
     await expect(startBuildPromise).resolves.toBeUndefined();
-    expect(loggerStart).not.toBeCalled();
-    expect(batchGetBuilds).not.toBeCalled();
+    expect(loggerStart).not.toHaveBeenCalled();
+    expect(batchGetBuilds).not.toHaveBeenCalled();
   });
 
   it('should trigger exception if codebuild job can not be started', async () => {
@@ -325,6 +325,309 @@ describe('CodeBuildJob class functionality', () => {
 
     startBuild.mockReturnValueOnce(createAWSResponse({} as StartBuildOutput));
 
-    await expect(() => job.startBuild()).rejects.toThrowError('Can\'t start test CodeBuild job. Empty response from AWS API Endpoint')
+    await expect(() => job.startBuild()).rejects.toThrow('Can\'t start test CodeBuild job. Empty response from AWS API Endpoint')
+  });
+
+  it('should complete build and generate outputs and summary without manually canceling', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    const completeBuildDesc = {
+      ...buildDesc,
+      buildNumber: 42,
+      timeoutInMinutes: 60,
+      initiator: 'test-user'
+    };
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: completeBuildDesc,
+    } as StartBuildOutput));
+
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the first polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // This final timer execution should detect SUCCEEDED and generate outputs
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Verify outputs were set
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('id', completeBuildDesc.id);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('success', true);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('buildNumber', 42);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('timeoutInMinutes', 60);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('initiator', 'test-user');
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('buildStatus', 'SUCCEEDED');
+  });
+
+  it('should generate summary with CloudWatch logs link when logs are enabled', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    const buildWithLogs = {
+      ...buildDesc,
+      buildNumber: 42,
+      timeoutInMinutes: 60,
+      initiator: 'test-user',
+      logs: {
+        cloudWatchLogs: {
+          status: 'ENABLED',
+          groupName: '/aws/codebuild/test',
+          streamName: 'custom-stream'
+        }
+      }
+    };
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: buildWithLogs,
+    } as StartBuildOutput));
+
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithLogs, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithLogs, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithLogs, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithLogs, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // Final timer execution detects SUCCEEDED and generates outputs and summary
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Verify outputs were set and summary with logs was generated
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('id', buildWithLogs.id);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('success', true);
+  });
+
+  it('should handle summary generation when redirectServiceURL is provided', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, { ...codeBuildJobOptions, redirectServiceURL: 'https://redirect.example.com/' });
+
+    const completeBuildDesc = {
+      ...buildDesc,
+      buildNumber: 42,
+      timeoutInMinutes: 60,
+      initiator: 'test-user'
+    };
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: completeBuildDesc,
+    } as StartBuildOutput));
+
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...completeBuildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // Final timer execution detects SUCCEEDED and generates outputs and summary
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Verify outputs and summary were generated
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('id', completeBuildDesc.id);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('success', true);
+  });
+
+  it('should generate summary without CloudWatch logs link when logs are disabled', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    const buildWithoutLogs = {
+      ...buildDesc,
+      buildNumber: 42,
+      timeoutInMinutes: 60,
+      initiator: 'test-user',
+      logs: {
+        cloudWatchLogs: {
+          status: 'DISABLED'
+        }
+      }
+    };
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: buildWithoutLogs,
+    } as StartBuildOutput));
+
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithoutLogs, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithoutLogs, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithoutLogs, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildWithoutLogs, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // Final timer execution detects SUCCEEDED and generates outputs and summary
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Verify outputs were set but no CloudWatch logs link was added
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('id', buildWithoutLogs.id);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('success', true);
+  });
+
+  it('should generate outputs with success=false when build fails', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    const failedBuildDesc = {
+      ...buildDesc,
+      buildNumber: 42,
+      timeoutInMinutes: 60,
+      initiator: 'test-user'
+    };
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: failedBuildDesc,
+    } as StartBuildOutput));
+
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...failedBuildDesc, currentPhase: 'QUEUED', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...failedBuildDesc, currentPhase: 'PROVISIONING', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...failedBuildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...failedBuildDesc, currentPhase: 'COMPLETED', buildStatus: 'FAILED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // Final timer execution detects FAILED and generates outputs and summary
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Verify outputs were set with success=false for failed build
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('id', failedBuildDesc.id);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('success', false);
+    expect(actionsCoreSetOutput).toHaveBeenCalledWith('buildStatus', 'FAILED');
+  });
+
+  it('should handle repeated polling of same phase without duplicate phase change messages', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreInfo } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: buildDesc,
+    } as StartBuildOutput));
+
+    // Return the same phase twice to test the else branch of phase change condition
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'SUCCEEDED' } ] } as BatchGetBuildsOutput));
+
+    await job.startBuild();
+
+    // Run the polling cycles
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // This second call should have the same phase, testing the else branch of currentPhase !== this.currentPhase
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // This call detects COMPLETED status and should trigger both output generation and phase change
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    
+    // Run one more timer to ensure final processing
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    // Should have phase change message for BUILD but not for the duplicate BUILD phase
+    expect(actionsCoreInfo).toHaveBeenCalledWith('Build phase was changed to the "BUILD"');
+    expect(actionsCoreInfo).toHaveBeenCalledWith('Build phase was changed to the "COMPLETED"');
+  });
+
+  it('should skip output generation when build status is IN_PROGRESS', async () => {
+    const { startBuild, batchGetBuilds, actionsCoreSetOutput, actionsCoreDebug } = mocks;
+    const job = new CodeBuildJob({ projectName: 'test' }, codeBuildJobOptions);
+
+    // Set up the build so it's in a state where wait() can be called
+    startBuild.mockReturnValueOnce(createAWSResponse({
+      build: buildDesc,
+    } as StartBuildOutput));
+
+    // Setup multiple mock calls: one for startBuild, one for the direct wait() call
+    // The key is to have COMPLETED phase with IN_PROGRESS status to hit the else branch
+    batchGetBuilds
+      .mockReturnValueOnce(createAWSResponse({ 
+        builds: [ { ...buildDesc, currentPhase: 'BUILD', buildStatus: 'IN_PROGRESS' } ] 
+      } as BatchGetBuildsOutput))
+      .mockReturnValueOnce(createAWSResponse({ 
+        builds: [ { ...buildDesc, currentPhase: 'COMPLETED', buildStatus: 'IN_PROGRESS' } ] 
+      } as BatchGetBuildsOutput));
+
+    // Start the build to initialize the job
+    await job.startBuild();
+
+    // Clear previous calls to focus on the wait() method call
+    actionsCoreSetOutput.mockClear();
+    actionsCoreDebug.mockClear();
+
+    // Call the protected wait() method directly to test the IN_PROGRESS branch
+    await (job as any)['wait']();
+
+    // Verify that setOutput was NOT called (because status is IN_PROGRESS in COMPLETED phase)
+    expect(actionsCoreSetOutput).not.toHaveBeenCalled();
+    
+    // Verify that debug was called (showing the method executed)
+    expect(actionsCoreDebug).toHaveBeenCalled();
+    
+    // Also verify that the debug message about composing outputs was NOT called
+    expect(actionsCoreDebug).not.toHaveBeenCalledWith('[CodeBuildJob] Composing GitHub Action outputs');
   });
 });

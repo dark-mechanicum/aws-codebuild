@@ -107,3 +107,5 @@ typings/
 
 # VSCode
 .vscode
+
+.claude

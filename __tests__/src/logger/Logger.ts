@@ -37,7 +37,7 @@ describe('Decorator Logger functionality', () => {
   });
 
   it('should trigger error for unknown logger type', async () => {
-    expect(() => new Logger({ type: 'fake', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 })).toThrowError('No found CloudWatch config for listening');
+    expect(() => new Logger({ type: 'fake', logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 })).toThrow('No found CloudWatch config for listening');
   });
 
   it('should exit with error on exception in startLogger', async () => {
@@ -46,7 +46,7 @@ describe('Decorator Logger functionality', () => {
 
     await Promise.resolve(); // wait till all pending promises will be resolved
 
-    expect(mocks.actionsCoreError).toBeCalled();
+    expect(mocks.actionsCoreError).toHaveBeenCalled();
   });
 
   it('should call startListen only one time', async () => {
@@ -54,24 +54,24 @@ describe('Decorator Logger functionality', () => {
     const stopListenMock = logger['logger']['stopListen'];
 
     logger.start();
-    expect(startListenMock).toBeCalledTimes(1);
+    expect(startListenMock).toHaveBeenCalledTimes(1);
 
     logger.start();
-    expect(startListenMock).toBeCalledTimes(1);
+    expect(startListenMock).toHaveBeenCalledTimes(1);
 
     logger.stop();
-    expect(stopListenMock).toBeCalledTimes(1);
+    expect(stopListenMock).toHaveBeenCalledTimes(1);
   });
 
   it('should close log group on process uncaughtException event', async () => {
     process.emit('uncaughtException', new Error());
     jest.runAllTicks();
-    expect(mocks.actionsCoreEndGroup).toBeCalled();
+    expect(mocks.actionsCoreEndGroup).toHaveBeenCalled();
   });
 
   it('should close log group on process exit event', async () => {
     process.emit('exit', 0);
     jest.runAllTicks();
-    expect(mocks.actionsCoreEndGroup).toBeCalled();
+    expect(mocks.actionsCoreEndGroup).toHaveBeenCalled();
   });
 })

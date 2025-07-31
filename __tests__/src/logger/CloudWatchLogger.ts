@@ -61,12 +61,12 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
 
     await expect(logger['getEvents']()).resolves.toBeUndefined();
-    expect(getLogEvents).toBeCalledTimes(3);
-    expect(actionsCoreInfo).toBeCalledTimes(4);
+    expect(getLogEvents).toHaveBeenCalledTimes(3);
+    expect(actionsCoreInfo).toHaveBeenCalledTimes(4);
 
     await expect(logger['getEvents']()).resolves.toBeUndefined();
-    expect(getLogEvents).toBeCalledTimes(6);
-    expect(actionsCoreInfo).toBeCalledTimes(8);
+    expect(getLogEvents).toHaveBeenCalledTimes(6);
+    expect(actionsCoreInfo).toHaveBeenCalledTimes(8);
   });
 
   it('should cancel logs listening if have no access', async () => {
@@ -81,10 +81,55 @@ describe('CloudWatchLogs Logger getEvents() method', () => {
     const stopListenSpy = jest.spyOn(logger, 'stopListen');
 
     await expect(logger['getEvents']()).resolves.toBeUndefined();
-    expect(getLogEvents).toBeCalledTimes(1);
-    expect(actionsCoreInfo).not.toBeCalled();
-    expect(actionsCoreError).toBeCalledTimes(1);
-    expect(stopListenSpy).toBeCalledTimes(1);
+    expect(getLogEvents).toHaveBeenCalledTimes(1);
+    expect(actionsCoreInfo).not.toHaveBeenCalled();
+    expect(actionsCoreError).toHaveBeenCalledTimes(1);
+    expect(stopListenSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle recursive calls with nextForwardToken for paginated results', async () => {
+    const events = [
+      { ingestionTime: (new Date()).getTime(), timestamp: (new Date()).getTime(), message: 'Test1' },
+      { ingestionTime: (new Date()).getTime(), timestamp: (new Date()).getTime(), message: 'Test2' },
+    ];
+
+    const { getLogEvents, actionsCoreInfo } = mocks;
+    getLogEvents
+      // First call returns nextForwardToken which triggers recursive call
+      .mockReturnValueOnce(createAWSResponse({ 
+        events, 
+        nextForwardToken: 'page2token'
+      }))
+      // Recursive call with nextForwardToken
+      .mockReturnValueOnce(createAWSResponse({ 
+        events: [{ ingestionTime: (new Date()).getTime(), timestamp: (new Date()).getTime(), message: 'Test3' }], 
+        nextForwardToken: null
+      }));
+
+    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
+
+    await expect(logger['getEvents']()).resolves.toBeUndefined();
+    expect(getLogEvents).toHaveBeenCalledTimes(2);
+    expect(actionsCoreInfo).toHaveBeenCalledTimes(3); // 2 from first call + 1 from recursive call
+  });
+
+  it('should handle other types of errors besides AccessDeniedException', async () => {
+    const { getLogEvents, actionsCoreInfo, actionsCoreError } = mocks;
+    const error = {
+      message: 'some other error',
+      code: 'UnknownError',
+    } as Error & { code: string };
+
+    getLogEvents.mockRejectedValue(error);
+    const logger = new CloudWatchLogger({ logGroupName: 'log_group_name', logStreamName: 'log_stream_name' }, { updateInterval: 5000 });
+    const stopListenSpy = jest.spyOn(logger, 'stopListen');
+
+    await expect(logger['getEvents']()).resolves.toBeUndefined();
+    expect(getLogEvents).toHaveBeenCalledTimes(1);
+    expect(actionsCoreInfo).not.toHaveBeenCalled();
+    expect(actionsCoreError).toHaveBeenCalledTimes(1);
+    expect(actionsCoreError).toHaveBeenCalledWith('some other error');
+    expect(stopListenSpy).not.toHaveBeenCalled(); // Should not stop for non-AccessDeniedException
   });
 });
 
@@ -105,19 +150,19 @@ describe('CloudWatchLogs Logger Timers', () => {
     const getEventsMock = logger['getEvents'];
     await logger.startListen();
 
-    expect(getEventsMock).toBeCalledTimes(1);
+    expect(getEventsMock).toHaveBeenCalledTimes(1);
     logger.stopListen();
     jest.runOnlyPendingTimers();
-    expect(getEventsMock).toBeCalledTimes(2);
+    expect(getEventsMock).toHaveBeenCalledTimes(2);
   });
 
   it('should start timer and execute it 1 times on force stop', async () => {
     const getEventsMock = logger['getEvents'];
     await logger.startListen();
 
-    expect(getEventsMock).toBeCalledTimes(1);
+    expect(getEventsMock).toHaveBeenCalledTimes(1);
     logger.stopListen(true);
     jest.runOnlyPendingTimers();
-    expect(getEventsMock).toBeCalledTimes(1);
+    expect(getEventsMock).toHaveBeenCalledTimes(1);
   });
 })

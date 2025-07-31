@@ -93,7 +93,7 @@ describe('CodeBuildJob class functionality', () => {
 
     jest.spyOn(process, 'exit').mockImplementation(jest.fn().mockName('Mock process.exit()') as never);
     process.emit('SIGINT');
-    expect(cancelBuild).toBeCalled();
+    expect(cancelBuild).toHaveBeenCalled();
   });
 
   it('should try to cancel job on SIGINT signal with exception', async () => {
@@ -107,7 +107,7 @@ describe('CodeBuildJob class functionality', () => {
     require('../../../src/index');
     process.emit('SIGINT');
 
-    expect(cancelBuild).toBeCalled();
+    expect(cancelBuild).toHaveBeenCalled();
     expect(actionsCoreError).toHaveBeenLastCalledWith(error);
   });
 
@@ -132,7 +132,7 @@ describe('CodeBuildJob class functionality', () => {
     actionsCoreGetBooleanInput.mockReturnValue(false);
     require('../../../src/index');
 
-    expect(CodeBuildJobMock).toBeCalled();
+    expect(CodeBuildJobMock).toHaveBeenCalled();
     expect(CodeBuildJobMock).toHaveBeenLastCalledWith({
       projectName: 'test',
       test: {
