@@ -27,12 +27,12 @@ jobs:
         run: git push origin main --tags
 
       - name: Create Release
-        uses: actions/create-release@v4
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v1
-          release_name: Major release version
+          name: Major release version
           body: Update major release version to the ${{ github.ref }}
           draft: false
           prerelease: false
