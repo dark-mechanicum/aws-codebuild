@@ -1,6 +1,6 @@
 {
   "name": "@dark-mechanicum/aws-codebuild",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "GitHub Action to execute AWS CodeBuild jobs",
   "author": "Andrei Kazakou<a.v.kazakou@gmail.com>",
   "main": "dist/index.js",
@@ -55,10 +55,13 @@
       }
     },
     "transform": {
-      "^.+\\.(ts|tsx)$": ["ts-jest", {
-        "tsconfig": "tsconfig.lint.json",
-        "diagnostics": true
-      }]
+      "^.+\\.(ts|tsx)$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.lint.json",
+          "diagnostics": true
+        }
+      ]
     },
     "testMatch": [
       "<rootDir>/__tests__/**/*.+(ts|tsx|js)"
