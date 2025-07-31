@@ -619,7 +619,7 @@ describe('CodeBuildJob class functionality', () => {
     actionsCoreDebug.mockClear();
 
     // Call the protected wait() method directly to test the IN_PROGRESS branch
-    await (job as any)['wait']();
+    await (job as unknown as { wait: () => Promise<void> }).wait();
 
     // Verify that setOutput was NOT called (because status is IN_PROGRESS in COMPLETED phase)
     expect(actionsCoreSetOutput).not.toHaveBeenCalled();
