@@ -17,13 +17,13 @@ describe('Utils functionality testing', () => {
     const { actionsCoreDebug, actionsCoreError } = utilsMocks;
 
     expect(() => debug('Test')).not.toThrow();
-    expect(stringifyMock).toBeCalledTimes(1);
-    expect(actionsCoreDebug).toBeCalledTimes(2);
-    expect(actionsCoreError).toBeCalledTimes(1);
+    expect(stringifyMock).toHaveBeenCalledTimes(1);
+    expect(actionsCoreDebug).toHaveBeenCalledTimes(2);
+    expect(actionsCoreError).toHaveBeenCalledTimes(1);
 
-    expect(actionsCoreError).lastCalledWith(error);
-    expect(actionsCoreDebug).nthCalledWith(1, `[DEBUG] Can't stringify additional debug data for the message: Test. Error: Test error`);
-    expect(actionsCoreDebug).nthCalledWith(2, `[DEBUG] Test`);
+    expect(actionsCoreError).toHaveBeenLastCalledWith(error);
+    expect(actionsCoreDebug).toHaveBeenNthCalledWith(1, `[DEBUG] Can't stringify additional debug data for the message: Test. Error: Test error`);
+    expect(actionsCoreDebug).toHaveBeenNthCalledWith(2, `[DEBUG] Test`);
 
     stringifyMock.mockRestore();
   });

@@ -19,6 +19,12 @@ module.exports = [
   eslint.configs.recommended,
   ...tslint.configs.recommended,
   {
+    files: ["**/__tests__/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/**/*",
       "coverage/**/*",

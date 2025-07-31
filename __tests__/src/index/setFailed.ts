@@ -30,6 +30,6 @@ describe('Testing setFailed functionality', () => {
     jest.requireMock('../../../src/index');
     await new Promise(process.nextTick);
 
-    await expect(actionsCoreSetFailed).toBeCalled();
+    await expect(actionsCoreSetFailed).toHaveBeenCalled();
   });
 });
